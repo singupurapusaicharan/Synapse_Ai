@@ -1,12 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 
 export function GoogleCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { refreshUser } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -15,16 +13,13 @@ export function GoogleCallback() {
       // Store token
       localStorage.setItem('auth_token', token);
 
-      // Ensure auth context is populated in the same page load.
-      void (async () => {
-        await refreshUser();
-        // After Google login, guide user to connect Gmail in Sources (then return to dashboard).
-        navigate('/sources?autoconnect=gmail&returnTo=%2F', { replace: true });
-      })();
+      // After Google login, force a full reload into Sources auto-connect flow.
+      // This avoids timing issues where the Sources page mounts before auth context updates.
+      window.location.replace('/sources?autoconnect=gmail&returnTo=%2F');
     } else {
       navigate('/auth?error=google_login_failed', { replace: true });
     }
-  }, [searchParams, navigate, refreshUser]);
+  }, [searchParams, navigate]);
 
   return (
     <div className="h-screen flex items-center justify-center">
