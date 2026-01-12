@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { StatusBar } from '@/components/layout/StatusBar';
@@ -175,6 +175,13 @@ export function Sources() {
             description: `Successfully synced ${connected}. You can now ask questions.`,
           });
           await fetchSources();
+
+          // If this connect was triggered by the auto-connect flow, return the user where they came from.
+          const returnTo = sessionStorage.getItem('autoconnect_returnTo');
+          if (returnTo && returnTo.startsWith('/')) {
+            sessionStorage.removeItem('autoconnect_returnTo');
+            navigate(returnTo, { replace: true });
+          }
         } catch (e: unknown) {
           toast({
             title: 'Sync failed',
@@ -205,7 +212,7 @@ export function Sources() {
     return sources.find(s => s.source_type === sourceType) || null;
   };
 
-  const handleConnect = async (sourceType: string) => {
+  const handleConnect = useCallback(async (sourceType: string) => {
     if (sourceType === 'gmail' || sourceType === 'drive') {
       try {
         setConnecting(sourceType);
@@ -247,7 +254,54 @@ export function Sources() {
         description: `${sourceType} integration is not yet available.`,
       });
     }
-  };
+  }, [navigate, toast]);
+
+  // Auto-connect flow: used after email/password signup to guide users into connecting Gmail.
+  // This still requires the user to approve Google OAuth; it just removes manual steps.
+  useEffect(() => {
+    if (!user) return;
+    if (loading) return;
+    if (connecting || syncing) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const connected = urlParams.get('connected');
+    const oauthError = urlParams.get('error');
+    // If we just came back from OAuth (success or error), don't auto-trigger again.
+    if (connected || oauthError) return;
+
+    const auto = urlParams.get('autoconnect');
+    if (auto !== 'gmail' && auto !== 'drive') return;
+
+    // Persist returnTo through the OAuth redirect round-trip (query params will be lost).
+    const returnTo = urlParams.get('returnTo');
+    if (returnTo && returnTo.startsWith('/')) {
+      sessionStorage.setItem('autoconnect_returnTo', returnTo);
+    }
+
+    const key = `autoconnect_done_${auto}`;
+    if (sessionStorage.getItem(key) === 'true') return;
+
+    const source = sources.find((s) => s.source_type === auto) || null;
+    // If already connected, just clean the URL so we don't loop.
+    if (source?.status === 'connected') {
+      sessionStorage.setItem(key, 'true');
+      window.history.replaceState({}, '', '/sources');
+      const rt = sessionStorage.getItem('autoconnect_returnTo');
+      if (rt && rt.startsWith('/')) {
+        sessionStorage.removeItem('autoconnect_returnTo');
+        navigate(rt, { replace: true });
+      }
+      return;
+    }
+
+    // Must have a session token to initiate connector OAuth.
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    sessionStorage.setItem(key, 'true');
+    // Kick off OAuth connect (same behavior as clicking Connect).
+    void handleConnect(auto);
+  }, [user, loading, sources, connecting, syncing, handleConnect, navigate]);
 
   const handleSync = async (sourceType: string) => {
     // Prevent multiple simultaneous syncs

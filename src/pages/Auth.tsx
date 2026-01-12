@@ -52,7 +52,15 @@ export function Auth() {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      // Allow a one-time post-auth redirect (used for auto-connect flows).
+      // Falls back to the dashboard route.
+      const redirectTo = sessionStorage.getItem('post_auth_redirect');
+      if (redirectTo) {
+        sessionStorage.removeItem('post_auth_redirect');
+        navigate(redirectTo, { replace: true });
+      } else {
+        navigate('/');
+      }
     }
   }, [user, navigate]);
 
@@ -103,6 +111,8 @@ export function Auth() {
     }
 
     setIsLoading(true);
+    // After sign-in, auto-guide users to connect Gmail in Sources and then return to dashboard.
+    sessionStorage.setItem('post_auth_redirect', '/sources?autoconnect=gmail&returnTo=%2F');
     const { error } = await signIn(email, password);
     setIsLoading(false);
 
@@ -150,6 +160,9 @@ export function Auth() {
     }
 
     setIsLoading(true);
+    // After signup, auto-guide users to connect Gmail in Sources.
+    // This still requires the user to approve Google OAuth, but removes manual navigation steps.
+    sessionStorage.setItem('post_auth_redirect', '/sources?autoconnect=gmail');
     const { error } = await signUp(email, password);
     setIsLoading(false);
 
