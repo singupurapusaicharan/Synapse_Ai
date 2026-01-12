@@ -1,5 +1,3 @@
-# Synapse_Ai
-
 Synapse AI — Personal Memory & Knowledge Assistant 🧠
 
 Synapse AI is a full-stack Retrieval-Augmented Generation (RAG) application that transforms your personal data into a searchable, conversational memory system.
@@ -79,9 +77,8 @@ Chat models: mistral (fallback: phi)
 
 Hybrid retrieval (metadata + vector similarity)
 
-📁 Project Structure :
-
-
+📁 Project Structure
+.
 ├─ src/                    # React frontend
 ├─ server/                 # Express backend
 │  ├─ routes/              # API + OAuth routes
@@ -92,6 +89,9 @@ Hybrid retrieval (metadata + vector similarity)
 ├─ vercel.json             # SPA rewrites for React Router
 ├─ package.json            # Root scripts
 └─ README.md
+
+
+The structure is intentionally simple, readable, and scalable, making it easy to extend with additional data sources or AI providers.
 
 🔐 Authentication Model
 
