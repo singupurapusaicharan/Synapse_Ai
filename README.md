@@ -1,253 +1,185 @@
-Synapse AI — Personal Memory & Knowledge Assistant 🧠
+# Synapse AI 🧠  
+*Your Unified Personal Memory & Knowledge Workspace*  
 
-Synapse AI is a full-stack Retrieval-Augmented Generation (RAG) application that transforms your personal data into a searchable, conversational memory system.
+---
 
-It connects to sources like Gmail and Google Drive, securely syncs and indexes content into a vector database (pgvector), and allows you to ask natural-language questions with grounded answers and deep-link citations back to the original source.
+## Introduction
 
-Designed as a calm, modern AI workspace, Synapse AI focuses on clarity, speed, and trust.
+**Synapse AI** is a next-generation, full-stack Retrieval-Augmented Generation (RAG) application that empowers you to transform personal data from sources like Gmail and Google Drive into a highly searchable, conversational memory system. Designed with security, extensibility, and elegant user experience in mind, Synapse AI stands apart as a calm, modern workspace where your knowledge is always at your fingertips.
 
-✨ Key Capabilities
+---
 
-Unified Personal Memory
+## ✨ Key Features
 
-Search and chat across Gmail and Google Drive from one interface
+### Unified Personal Knowledge Hub
+- **Connect and Centralize:** Integrates Gmail and Google Drive into one powerful memory graph.
+- **Contextual Conversations:** Ask questions using natural language and receive answers grounded in your personal data, complete with citations and deep links.
 
-Semantic Search + Chat
+### Advanced Search & Retrieval
+- **Semantic + Hybrid Search:** Leverages vector embeddings (via pgvector) and metadata for ultra-relevant results.
+- **Fast Retrieval:** Optimized indexes ensure millisecond response times even with large data volumes.
+
+### Robust Authentication & Security
+- **Secure Auth:** Email/password and “Continue with Google” authentication, isolated from data access permissions.
+- **Encrypted Tokens:** OAuth tokens stored with AES-256-GCM encryption for airtight security.
+- **Strict Data Isolation:** Every user’s data remains completely segregated—your privacy is non-negotiable.
 
-Vector embeddings with pgvector
+### Modern, Minimal UI/UX
+- **Calm Interface:** Focused, distraction-free design theme.
+- **Speed & Clarity:** Instant load times, clear information hierarchy, and responsive layout.
+
+### Production-Grade Architecture
+- **Separation of Concerns:** Clear delineation of frontend, backend, and storage layers for maintainability and scalability.
+- **Ready for Extensions:** Modular approach makes it easy to add new connectors (Notion, Slack, Calendar) or swap AI providers.
+
+---
+
+## 🧱 Tech Stack Overview
+
+| Layer      | Technologies                               |
+|------------|--------------------------------------------|
+| Frontend   | React 18, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query    |
+| Backend    | Node.js, Express, JWT, Google APIs, Nodemailer                    |
+| Database   | PostgreSQL (Supabase), pgvector (vector search), Optimized Indexes |
+| AI/ML      | Embeddings: nomic-embed-text, Chat: mistral (fallback: phi)        |
+| Deployment | Vercel (frontend), Render/Railway/Fly.io (backend)                 |
+
+---
 
-Context-aware answers with citations
+## 🗂️ Project Structure
+
+```
+/
+├── src/          # React frontend: UI, business logic
+├── server/       # Express backend: APIs, routes, middleware
+│   ├── routes/       # Authentication, OAuth, core APIs
+│   ├── lib/          # Utilities for ingestion, OAuth, vectors
+│   ├── middleware/   # Auth guards, rate limiting
+│   └── scripts/      # Database setup, diagnostics
+├── public/       # Static assets
+├── vercel.json   # SPA rewrites for Vercel deployment
+├── package.json  # Monorepo scripts
+└── README.md     
+```
 
-Secure Authentication
+*Design simplicity is foundational—making it both readable and extensible.*
 
-Email/password authentication
+---
 
-Google Login (“Continue with Google”) for user accounts
+## 🔐 Security Model
 
-Source Connectors
+- **Two-stage Google OAuth:**
+  - **Login:** Used strictly for account authentication.
+  - **Data Connectors:** Independent tokens for Gmail/Drive ingestion, never shared with auth.
+- **Encryption-first:** All tokens are encrypted at rest using AES-256-GCM.
+- **Limit-of-least-privilege:** Only read-only, minimal Google API scopes granted.
+- **Per-user Data Guardrails:** Each user’s memory is siloed—full privacy assurance.
+- **Additional Protections:** JWT authentication, bcrypt password hashing, and rate limiting on all endpoints.
 
-Gmail & Google Drive OAuth (separate from login OAuth)
+---
 
-Local-First AI
+## 🗄️ Database Architecture
 
-Ollama for embeddings and chat (configurable for hosted models)
+- **Core Tables:**
+  - `users`, `sessions`, `sources`, `oauth_tokens`, `document_chunks` (vectors)
+  - `chat_sessions`, `chat_messages`, `query_history`
+- **Security & Performance:**
+  - User data isolation at design level.
+  - High-performance pgvector for retrieval.
+  - Embedding indexes for instant search.
 
-Production-Ready Architecture
+---
 
-Clear separation of frontend, backend, and data layers
+## ⚙️ Environment & Configuration
 
-Modern, Minimal UI
+- Single root `.env` file for all sensitive configs.
+- **Frontend:** All variables prefixed with `VITE_`.
+- **Backend:** Loaded via dotenv library.
+- **Safe Defaults:** Example file (`env.example.txt`) provided.
+- **Best Practices:** Never commit real `.env` files; rotate keys promptly if disclosed.
 
-React + TypeScript + Tailwind + shadcn/ui
+---
 
-🧱 Tech Stack
-Frontend
+## 🧪 Local Development Quickstart
 
-React 18, TypeScript, Vite
+1. **Install dependencies**
+   ```sh
+   npm install
+   ```
+2. **Initialize the database**
+   ```sh
+   npm run init:db
+   ```
+3. **Start development servers**
+   ```sh
+   npm run dev:all
+   ```
+4. **Access Synapse AI:**
+   - Frontend: [http://localhost:8080](http://localhost:8080)
+   - Backend: [http://localhost:3001](http://localhost:3001)
+   - Health Check: [http://localhost:3001/health](http://localhost:3001/health)
 
-Tailwind CSS + shadcn/ui
+---
 
-React Router
+## 🔌 API Reference
 
-TanStack Query
+### Authentication
+- `POST /api/auth/signup` — Register user
+- `POST /api/auth/signin` — Login
+- `POST /api/auth/signout` — Logout
+- `GET  /api/auth/me`     — Get current user
 
-Backend
+### Chat (RAG)
+- `POST /api/chat/session/new` — Start new chat
+- `POST /api/chat/message`     — Send/receive messages
+- `GET  /api/chat/sessions`    — List sessions
 
-Node.js + Express
+### Sources Management
+- `GET  /api/sources`
+- `POST /api/sources/connect`
+- `POST /api/sources/sync`
+- `POST /api/sources/disconnect`
 
-JWT authentication
+---
 
-Google APIs (Gmail, Drive)
+## 🚀 Deployment Strategy
 
-Nodemailer (password reset)
+| Part      | Recommended     | Notes                           |
+|-----------|----------------|---------------------------------|
+| Frontend  | Vercel         | Set `VITE_API_BASE_URL` for prod|
+| Backend   | Render/Railway/Fly.io | Set all URIs correctly; backend is never on Vercel serverless |
+| Config    | Update Google OAuth redirect URIs for your domain.|
 
-Database
+---
 
-PostgreSQL (Supabase)
+## 🛡️ Security Best Practices
 
-pgvector for similarity search
+- JWT-based authentication
+- bcrypt for password hashing
+- Encrypted storage for OAuth tokens
+- Strict, rate-limited APIs
+- Per-user data boundaries
 
-Optimized indexes for vector queries
+---
 
-AI / ML
+## 🧭 Vision
 
-Embeddings: nomic-embed-text
+> **Synapse AI** is engineered as your personalized knowledge layer—remembering, retrieving, and intelligently reasoning over your scattered digital information, all while staying calm, secure, and under your control.
 
-Chat models: mistral (fallback: phi)
+**Modular. Secure. Extendable. Intuitive.**  
+*Own your memory. Shape your knowledge.*
 
-Hybrid retrieval (metadata + vector similarity)
+---
 
-📁 Project Structure
-.
-├─ src/                    # React frontend
-├─ server/                 # Express backend
-│  ├─ routes/              # API + OAuth routes
-│  ├─ lib/                 # OAuth, ingestion, vector utilities
-│  ├─ middleware/          # Auth, rate limiting
-│  └─ scripts/             # DB setup & diagnostics
-├─ public/                 # Static assets
-├─ vercel.json             # SPA rewrites for React Router
-├─ package.json            # Root scripts
-└─ README.md
+## 💡 Extending Synapse AI
 
+- **Add new data sources**: Easily integrate Notion, Slack, Calendar, etc.
+- **Swap AI providers:** Modular design supports different model backends.
+- **Scale easily:** Grows from local-first to cloud-scale inference with zero friction.
 
-The structure is intentionally simple, readable, and scalable, making it easy to extend with additional data sources or AI providers.
+---
 
-🔐 Authentication Model
 
-Synapse AI uses two distinct Google OAuth flows:
+---
 
-Google Login
-
-Used only for account authentication
-
-Gmail / Drive Connectors
-
-Used strictly for data ingestion
-
-Tokens are encrypted at rest using AES-256-GCM
-
-This separation ensures:
-
-Clear security boundaries
-
-Safer permission handling
-
-Easier future extensibility
-
-🗄️ Database Overview
-
-Core tables include:
-
-users
-
-sessions
-
-sources
-
-oauth_tokens (encrypted)
-
-document_chunks (vector embeddings)
-
-chat_sessions
-
-chat_messages
-
-query_history
-
-Key features:
-
-pgvector similarity search
-
-User-scoped data isolation
-
-Indexed embeddings for fast retrieval
-
-⚙️ Environment Configuration
-
-The project uses a single root .env file.
-
-Frontend variables are prefixed with VITE_, while the backend loads environment variables via dotenv.
-
-A complete template is provided in env.example.txt.
-
-Important:
-
-Never commit .env files
-
-Rotate secrets if exposed
-
-🧪 Local Development
-Install dependencies
-npm install
-
-Initialize the database
-npm run init:db
-
-Start frontend + backend
-npm run dev:all
-
-
-Default URLs
-
-Frontend: http://localhost:8080
-
-Backend: http://localhost:3001
-
-Health check: http://localhost:3001/health
-
-🔌 Core API Endpoints
-Authentication
-
-POST /api/auth/signup
-
-POST /api/auth/signin
-
-POST /api/auth/signout
-
-GET /api/auth/me
-
-Chat (RAG)
-
-POST /api/chat/session/new
-
-POST /api/chat/message
-
-GET /api/chat/sessions
-
-Sources
-
-GET /api/sources
-
-POST /api/sources/connect
-
-POST /api/sources/sync
-
-POST /api/sources/disconnect
-
-🚀 Deployment Strategy
-Frontend
-
-Vercel (recommended)
-
-Set VITE_API_BASE_URL to backend URL
-
-SPA routing handled via vercel.json
-
-Backend
-
-Render / Railway / Fly.io
-
-Standard Node.js server deployment
-
-Set BACKEND_URL and FRONTEND_URL correctly
-
-Update Google OAuth redirect URIs for production
-
-Note: The Express backend is not deployed to Vercel serverless by default.
-
-🛡️ Security Notes
-
-JWT-based authentication
-
-bcrypt password hashing
-
-Encrypted OAuth tokens
-
-Rate-limited endpoints
-
-Strict per-user data isolation
-
-Read-only Google API scopes
-
-🧭 Vision
-
-Synapse AI is designed as a personal knowledge layer — a system that remembers, retrieves, and reasons over your data without overwhelming you.
-
-The architecture is intentionally modular, making it easy to:
-
-Add new data sources (Notion, Slack, Calendar)
-
-Swap AI providers
-
-Scale from local-first to hosted inference
+## ✨ Experience a new era of personal memory — [Start with Synapse AI](#)!
