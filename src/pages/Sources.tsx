@@ -66,7 +66,7 @@ export function Sources() {
   const [connecting, setConnecting] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const updateLastSyncedLocal = (sourceType: string, isoTimestamp: string) => {
     setSources((prev) =>
@@ -77,6 +77,10 @@ export function Sources() {
   };
 
   useEffect(() => {
+    // Don't redirect while auth is still loading (prevents a race right after Google sign-in).
+    if (authLoading) {
+      return;
+    }
     if (!user) {
       navigate('/auth');
       return;
@@ -206,7 +210,7 @@ export function Sources() {
     // Poll for updates, but not too aggressively (prevents UI churn)
     const interval = setInterval(fetchSources, 15000);
     return () => clearInterval(interval);
-  }, [user, navigate, toast]);
+  }, [user, authLoading, navigate, toast]);
 
   const getSourceStatus = (sourceType: string): Source | null => {
     return sources.find(s => s.source_type === sourceType) || null;
