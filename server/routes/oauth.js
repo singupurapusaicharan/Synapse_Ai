@@ -76,8 +76,16 @@ router.get('/google', verifySession, async (req, res) => {
 router.get('/google/callback', async (req, res) => {
   try {
     console.log(`[OAuth] GET /auth/google/callback - Request received`);
-    const { code, state } = req.query;
-    console.log(`[OAuth] Callback params:`, { hasCode: !!code, hasState: !!state });
+    const { code, state, error: oauthError, error_description: oauthErrorDescription } = req.query;
+    console.log(`[OAuth] Callback params:`, { hasCode: !!code, hasState: !!state, oauthError: oauthError || null });
+
+    // If Google returned an OAuth error (user denied / app blocked / etc), surface it to the UI.
+    if (oauthError) {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+      const desc = typeof oauthErrorDescription === 'string' ? oauthErrorDescription : '';
+      const reason = desc ? `${oauthError}:${desc}` : String(oauthError);
+      return res.redirect(`${frontendUrl}/sources?error=oauth_failed&reason=${encodeURIComponent(reason)}`);
+    }
 
     if (!code) {
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';

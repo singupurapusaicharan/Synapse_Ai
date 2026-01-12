@@ -203,6 +203,10 @@ export function Sources() {
         description: `Failed to complete OAuth authorization: ${reason}`,
         variant: 'destructive',
       });
+      // Allow retry if an auto-connect attempt failed in this session.
+      sessionStorage.removeItem('autoconnect_done_gmail');
+      sessionStorage.removeItem('autoconnect_done_drive');
+      sessionStorage.removeItem('autoconnect_returnTo');
       // Remove query param
       window.history.replaceState({}, '', '/sources');
     }
