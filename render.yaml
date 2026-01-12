@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: synapse-ai-backend
+    env: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: node server/index.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      # Required secrets (set these in Render dashboard after import)
+      - key: JWT_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_DB_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # URLs (set these after you know your Render + Vercel URLs)
+      - key: BACKEND_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      # Optional
+      - key: OLLAMA_BASE_URL
+        sync: false
+      - key: OLLAMA_EMBEDDING_MODEL
+        sync: false
+      - key: OLLAMA_CHAT_MODEL
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
