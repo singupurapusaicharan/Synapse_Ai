@@ -130,8 +130,8 @@ router.get('/login/callback', async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
     
-    // Redirect to dedicated callback page with token
-    const redirectUrl = `${FRONTEND_URL}/google-callback?token=${token}`;
+    // Redirect to Sources auto-connect flow with token (frontend captures token early on boot).
+    const redirectUrl = `${FRONTEND_URL}/sources?autoconnect=gmail&returnTo=%2F&token=${encodeURIComponent(token)}`;
     console.log('[Google Login] Redirecting to:', redirectUrl);
     return res.redirect(redirectUrl);
   } catch (err) {
