@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Blue to green gradient background -->
+  <rect width="64" height="64" rx="12" fill="url(#gradient)"/>
+  
+  <!-- Main four-pointed star (sparkle) with thick black outline -->
+  <path d="M32 14L37 26L50 32L37 38L32 50L27 38L14 32L27 26L32 14Z" 
+        fill="none" 
+        stroke="#000000" 
+        stroke-width="3.5" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Plus sign in top right -->
+  <path d="M50 18L50 22M48 20L52 20" 
+        stroke="#000000" 
+        stroke-width="3" 
+        stroke-linecap="round"/>
+  
+  <!-- Small dot in bottom left -->
+  <circle cx="14" cy="50" r="2.5" fill="#000000"/>
+  
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+</svg>
