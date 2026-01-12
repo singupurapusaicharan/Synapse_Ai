@@ -1,46 +1,30 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export function GoogleCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   useEffect(() => {
-    console.log('[GoogleCallback] Page loaded');
-    console.log('[GoogleCallback] Location:', {
-      href: window.location.href,
-      origin: window.location.origin,
-      pathname: window.location.pathname,
-      search: window.location.search,
-      hash: window.location.hash,
-    });
-    
     const token = searchParams.get('token');
-    console.log('[GoogleCallback] Token from searchParams:', token ? 'FOUND' : 'NOT FOUND');
     
     if (token) {
-      console.log('[GoogleCallback] Token length:', token.length);
-      console.log('[GoogleCallback] Token preview:', token.substring(0, 50) + '...');
-      
       // Store token
       localStorage.setItem('auth_token', token);
-      console.log('[GoogleCallback] ✅ Token stored in localStorage');
-      
-      // Verify
-      const stored = localStorage.getItem('auth_token');
-      console.log('[GoogleCallback] Verification:', stored ? 'SUCCESS' : 'FAILED');
-      
-      // Navigate to landing/dashboard route (app decides what to show based on auth)
-      console.log('[GoogleCallback] Navigating to / ...');
-      setTimeout(() => {
-        navigate('/', { replace: true });
-      }, 500);
+
+      // Ensure auth context is populated in the same page load.
+      void (async () => {
+        await refreshUser();
+        // After Google login, guide user to connect Gmail in Sources (then return to dashboard).
+        navigate('/sources?autoconnect=gmail&returnTo=%2F', { replace: true });
+      })();
     } else {
-      console.error('[GoogleCallback] No token found, redirecting to auth');
       navigate('/auth?error=google_login_failed', { replace: true });
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, refreshUser]);
 
   return (
     <div className="h-screen flex items-center justify-center">
