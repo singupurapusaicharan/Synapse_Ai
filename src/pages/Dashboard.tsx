@@ -158,8 +158,8 @@ export function Dashboard() {
 
             try {
               localStorage.setItem(key, new Date().toISOString());
-              // Fire and forget; user can still manually Sync from Sources.
-              await apiClient.syncSource(src.source_type);
+              // Fire and forget; never block the dashboard render on a long sync.
+              void apiClient.syncSource(src.source_type);
             } catch (e) {
               // Silent: avoid spamming user; manual Sync button remains available.
             }

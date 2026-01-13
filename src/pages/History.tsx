@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { StatusBar } from '@/components/layout/StatusBar';
@@ -20,10 +20,27 @@ interface ChatSession {
   last_message_preview?: string;
 }
 
+function asRecord(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === 'object' ? (v as Record<string, unknown>) : null;
+}
+
+function isChatSession(v: unknown): v is ChatSession {
+  const r = asRecord(v);
+  if (!r) return false;
+  return (
+    typeof r.id === 'string' &&
+    typeof r.user_id === 'string' &&
+    (typeof r.title === 'string' || r.title === null) &&
+    typeof r.created_at === 'string' &&
+    typeof r.message_count === 'number'
+  );
+}
+
 export function History() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const isFetchingRef = useRef(false);
 
   const formatTimeAgo = (date: string | Date) => {
     return formatRelativeTime(date);
@@ -44,13 +61,15 @@ export function History() {
     }
 
     const fetchSessions = async () => {
+      if (isFetchingRef.current) return;
+      if (document.hidden) return;
+      isFetchingRef.current = true;
       try {
         setLoading(true);
-        console.log('Fetching chat sessions...');
         const response = await apiClient.getChatSessions();
-        console.log('Sessions response:', response);
-        if (response.data?.sessions) {
-          setSessions(Array.isArray(response.data.sessions) ? response.data.sessions : []);
+        const raw = response.data?.sessions;
+        if (Array.isArray(raw)) {
+          setSessions(raw.filter(isChatSession));
         } else {
           setSessions([]);
         }
@@ -63,14 +82,25 @@ export function History() {
         });
       } finally {
         setLoading(false);
+        isFetchingRef.current = false;
       }
     };
 
     fetchSessions();
 
-    // Poll every 5 seconds for updates
-    const interval = setInterval(fetchSessions, 5000);
-    return () => clearInterval(interval);
+    // Light polling (avoid hammering backend) + refetch on focus/visibility.
+    const interval = setInterval(fetchSessions, 30000);
+    const onFocus = () => void fetchSessions();
+    const onVisibility = () => {
+      if (!document.hidden) void fetchSessions();
+    };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [user, navigate, toast]);
 
   const handleSessionClick = (sessionId: string) => {

@@ -36,9 +36,11 @@ export function Navbar({ onNavigate }: NavbarProps) {
     navigate('/');
   };
 
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const userMeta =
+    (user as unknown as { user_metadata?: { full_name?: string; avatar_url?: string } | null })?.user_metadata || null;
+  const userName = userMeta?.full_name || user?.email?.split('@')[0] || 'User';
   const userEmail = user?.email || '';
-  const avatarUrl = user?.user_metadata?.avatar_url;
+  const avatarUrl = userMeta?.avatar_url;
   const emailInitial = (userEmail.trim()[0] || 'U').toUpperCase();
 
   return (
@@ -87,21 +89,21 @@ export function Navbar({ onNavigate }: NavbarProps) {
               </div>
               <DropdownMenuSeparator className="bg-border/50" />
               <DropdownMenuItem
-                className="cursor-pointer rounded-lg my-0.5 focus:bg-secondary/60"
+                className="cursor-pointer rounded-lg my-0.5 focus:bg-secondary/60 focus:text-foreground data-[highlighted]:bg-secondary/60 data-[highlighted]:text-foreground"
                 onClick={() => onNavigate?.('/settings')}
               >
                 <User className="w-4 h-4 mr-3" />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer rounded-lg my-0.5 focus:bg-secondary/60"
+                className="cursor-pointer rounded-lg my-0.5 focus:bg-secondary/60 focus:text-foreground data-[highlighted]:bg-secondary/60 data-[highlighted]:text-foreground"
                 onClick={() => onNavigate?.('/history')}
               >
                 <History className="w-4 h-4 mr-3" />
                 History
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer rounded-lg my-0.5 focus:bg-secondary/60"
+                className="cursor-pointer rounded-lg my-0.5 focus:bg-secondary/60 focus:text-foreground data-[highlighted]:bg-secondary/60 data-[highlighted]:text-foreground"
                 onClick={() => onNavigate?.('/settings')}
               >
                 <Settings className="w-4 h-4 mr-3" />
