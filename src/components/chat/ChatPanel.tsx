@@ -95,7 +95,6 @@ export function ChatPanel({
         value={draft}
         onValueChange={setDraft}
         textareaRef={inputRef}
-        userInitial={userInitial}
       />
     </div>
   );

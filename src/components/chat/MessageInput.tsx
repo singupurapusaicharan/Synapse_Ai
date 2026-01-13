@@ -10,7 +10,6 @@ interface MessageInputProps {
   value?: string;
   onValueChange?: (value: string) => void;
   textareaRef?: React.Ref<HTMLTextAreaElement>;
-  userInitial?: string;
 }
 
 export function MessageInput({
@@ -20,7 +19,6 @@ export function MessageInput({
   value: controlledValue,
   onValueChange,
   textareaRef: textareaRefProp,
-  userInitial,
 }: MessageInputProps) {
   const [uncontrolledValue, setUncontrolledValue] = useState('');
   const innerTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -75,10 +73,6 @@ export function MessageInput({
             'transition-all duration-500'
           )}
         >
-          <div className="w-8 h-8 rounded-lg bg-secondary/60 border border-border/40 flex items-center justify-center shrink-0 mb-0.5 font-semibold text-xs text-muted-foreground">
-            {(userInitial || 'U').slice(0, 1).toUpperCase()}
-          </div>
-
           <textarea
             ref={setMergedRef}
             value={value}
