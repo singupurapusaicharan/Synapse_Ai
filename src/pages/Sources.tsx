@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { StatusBar } from '@/components/layout/StatusBar';
@@ -67,6 +67,16 @@ export function Sources() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+
+  // Keep latest sync/connect state accessible to the polling timer without re-wiring effects.
+  const syncingRef = useRef<string | null>(null);
+  const connectingRef = useRef<string | null>(null);
+  useEffect(() => {
+    syncingRef.current = syncing;
+  }, [syncing]);
+  useEffect(() => {
+    connectingRef.current = connecting;
+  }, [connecting]);
 
   const updateLastSyncedLocal = (sourceType: string, isoTimestamp: string) => {
     setSources((prev) =>
@@ -211,8 +221,11 @@ export function Sources() {
       window.history.replaceState({}, '', '/sources');
     }
 
-    // Poll for updates, but not too aggressively (prevents UI churn)
-    const interval = setInterval(fetchSources, 15000);
+    // Poll for updates, but pause while user is actively connecting/syncing to avoid extra UI churn.
+    const interval = setInterval(() => {
+      if (syncingRef.current || connectingRef.current) return;
+      void fetchSources();
+    }, 15000);
     return () => clearInterval(interval);
   }, [user, authLoading, navigate, toast]);
 
@@ -362,7 +375,12 @@ export function Sources() {
       
       // Always refresh sources to get updated last_synced_at
       const sourcesResponse = await apiClient.getSources();
-      setSources(parseSources(sourcesResponse.data));
+      const next = parseSources(sourcesResponse.data);
+      setSources((prev) => {
+        const prevJson = JSON.stringify(prev);
+        const nextJson = JSON.stringify(next);
+        return prevJson === nextJson ? prev : next;
+      });
     } catch (error: unknown) {
       console.error('Error syncing source:', error);
       toast({

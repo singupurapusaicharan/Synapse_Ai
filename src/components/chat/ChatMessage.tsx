@@ -2,6 +2,8 @@ import { Message } from '@/types';
 import { CitationsList } from './CitationsList';
 import { cn } from '@/lib/utils';
 import { Pencil, Sparkles } from 'lucide-react';
+import { memo, useMemo } from 'react';
+import { formatChatTime } from '../../utils/time';
 
 interface ChatMessageProps {
   message: Message;
@@ -11,7 +13,7 @@ interface ChatMessageProps {
   userInitial?: string;
 }
 
-export function ChatMessage({ message, isLast, canEdit = false, onEdit, userInitial }: ChatMessageProps) {
+function ChatMessageComponent({ message, isLast, canEdit = false, onEdit, userInitial }: ChatMessageProps) {
   const isUser = message.role === 'user';
 
   return (
@@ -86,7 +88,7 @@ export function ChatMessage({ message, isLast, canEdit = false, onEdit, userInit
 }
 
 function MessageContent({ content }: { content: string }) {
-  const parts = content.split(/(\*\*.*?\*\*)/g);
+  const parts = useMemo(() => content.split(/(\*\*.*?\*\*)/g), [content]);
 
   return (
     <span className="whitespace-pre-wrap">
@@ -104,8 +106,9 @@ function MessageContent({ content }: { content: string }) {
   );
 }
 
-import { formatChatTime } from '../../utils/time';
-
 function formatTime(date: Date): string {
   return formatChatTime(date);
 }
+
+// Avoid re-rendering the entire message list on each keystroke in the input.
+export const ChatMessage = memo(ChatMessageComponent);

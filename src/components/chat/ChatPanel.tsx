@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Message } from '@/types';
 import { ChatMessage } from './ChatMessage';
 import { MessageInput } from './MessageInput';
@@ -52,6 +52,13 @@ export function ChatPanel({
     });
   }, [messages]);
 
+  const handleEdit = useCallback((msg: Message) => {
+    setDraft(msg.content);
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  }, []);
+
   return (
     <div className="flex-1 flex flex-col min-w-0">
       {/* Messages Area */}
@@ -67,33 +74,15 @@ export function ChatPanel({
           },
         }}
       >
-        <div className="p-4 lg:p-8 space-y-6 min-h-full max-w-4xl mx-auto">
-          {messages.length === 0 ? (
-            hasSources ? (
-              <EmptyStateWithSources />
-            ) : (
-              <EmptyStateNoSources onNavigateToSources={onNavigateToSources} />
-            )
-          ) : (
-            messages.map((message, index) => (
-              <ChatMessage
-                key={message.id}
-                message={message}
-                isLast={index === messages.length - 1}
-                canEdit={!isLoading && message.role === 'user' && message.id === lastUserMessageId}
-                userInitial={userInitial}
-                onEdit={(msg) => {
-                  setDraft(msg.content);
-                  requestAnimationFrame(() => {
-                    inputRef.current?.focus();
-                  });
-                }}
-              />
-            ))
-          )}
-
-          {isLoading && <TypingIndicator />}
-        </div>
+        <MessagesList
+          messages={messages}
+          hasSources={hasSources}
+          isLoading={!!isLoading}
+          lastUserMessageId={lastUserMessageId}
+          userInitial={userInitial}
+          onEdit={handleEdit}
+          onNavigateToSources={onNavigateToSources}
+        />
       </ScrollArea>
 
       {/* Input */}
@@ -111,6 +100,49 @@ export function ChatPanel({
     </div>
   );
 }
+
+const MessagesList = memo(function MessagesList({
+  messages,
+  hasSources,
+  isLoading,
+  lastUserMessageId,
+  userInitial,
+  onEdit,
+  onNavigateToSources,
+}: {
+  messages: Message[];
+  hasSources: boolean;
+  isLoading: boolean;
+  lastUserMessageId: string | null;
+  userInitial: string;
+  onEdit: (msg: Message) => void;
+  onNavigateToSources?: () => void;
+}) {
+  return (
+    <div className="p-4 lg:p-8 space-y-6 min-h-full max-w-4xl mx-auto">
+      {messages.length === 0 ? (
+        hasSources ? (
+          <EmptyStateWithSources />
+        ) : (
+          <EmptyStateNoSources onNavigateToSources={onNavigateToSources} />
+        )
+      ) : (
+        messages.map((message, index) => (
+          <ChatMessage
+            key={message.id}
+            message={message}
+            isLast={index === messages.length - 1}
+            canEdit={!isLoading && message.role === 'user' && message.id === lastUserMessageId}
+            userInitial={userInitial}
+            onEdit={onEdit}
+          />
+        ))
+      )}
+
+      {isLoading && <TypingIndicator />}
+    </div>
+  );
+});
 
 function EmptyStateNoSources({ onNavigateToSources }: { onNavigateToSources?: () => void }) {
   return (

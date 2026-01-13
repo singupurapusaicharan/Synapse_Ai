@@ -396,18 +396,7 @@ export function Dashboard() {
     loadSession();
   }, [user, checkingSources]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('[Dashboard] State:', { 
-      loading, 
-      checkingSources, 
-      userExists: !!user,
-      userEmail: user?.email 
-    });
-  }, [loading, checkingSources, user]);
-
   if (loading || checkingSources) {
-    console.log('[Dashboard] Showing loading screen');
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="flex items-center gap-3 animate-pulse-slow">
@@ -422,7 +411,6 @@ export function Dashboard() {
 
   // Unauthenticated landing view
   if (!user) {
-    console.log('[Dashboard] No user, showing landing page');
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar onNavigate={handleNavigate} />
@@ -487,8 +475,6 @@ export function Dashboard() {
   }
 
   // Authenticated dashboard view
-  console.log('[Dashboard] User authenticated, showing dashboard for:', user.email);
-  
   return (
     <div className="h-screen flex flex-col">
       <Navbar onNavigate={handleNavigate} />

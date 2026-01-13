@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import compression from 'compression';
 import authRoutes from './routes/auth.js';
 import oauthRoutes from './routes/oauth.js';
 import googleLoginRoutes from './routes/googleLogin.js';
@@ -28,6 +29,8 @@ const PORT = process.env.PORT || 3001;
 // Production-only security headers (minimal, avoids changing app behavior)
 if (process.env.NODE_ENV === 'production') {
   app.disable('x-powered-by');
+  // Gzip responses for faster page/API loads (no behavior change, just smaller payloads)
+  app.use(compression());
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');

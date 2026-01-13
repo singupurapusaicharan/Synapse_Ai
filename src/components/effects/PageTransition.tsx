@@ -1,6 +1,5 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -8,30 +7,11 @@ interface PageTransitionProps {
 
 export function PageTransition({ children }: PageTransitionProps) {
   const location = useLocation();
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [displayChildren, setDisplayChildren] = useState(children);
-
-  useEffect(() => {
-    setIsTransitioning(true);
-    
-    const timer = setTimeout(() => {
-      setDisplayChildren(children);
-      setIsTransitioning(false);
-    }, 150);
-
-    return () => clearTimeout(timer);
-  }, [location.pathname, children]);
 
   return (
-    <div
-      className={cn(
-        'transition-all duration-300 ease-out',
-        isTransitioning 
-          ? 'opacity-0 translate-y-2 scale-[0.99]' 
-          : 'opacity-100 translate-y-0 scale-100'
-      )}
-    >
-      {displayChildren}
+    // Keyed wrapper triggers a fresh CSS animation on navigation without introducing a blank delay.
+    <div key={location.pathname} className="animate-in will-change-transform">
+      {children}
     </div>
   );
 }
