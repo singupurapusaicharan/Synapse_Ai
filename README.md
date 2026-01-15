@@ -471,59 +471,7 @@ Access your UptimeRobot dashboard to view:
 
 ---
 
-## 🔧 Troubleshooting
 
-### Common Issues
-
-#### Backend Not Responding
-**Problem:** Backend returns 503 or times out  
-**Solution:** 
-- Render free tier may be sleeping (cold start takes 30-60s)
-- UptimeRobot should prevent this with 5-minute pings
-- Check UptimeRobot dashboard for downtime alerts
-
-#### Google OAuth Not Working
-**Problem:** "redirect_uri_mismatch" error  
-**Solution:**
-- Verify redirect URI in Google Cloud Console matches exactly:
-  - `http://localhost:3001/auth/google/login/callback` (development)
-  - `https://your-backend.onrender.com/auth/google/login/callback` (production)
-- Check `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`
-
-#### Database Connection Failed
-**Problem:** "Connection refused" or "ECONNREFUSED"  
-**Solution:**
-- Verify `SUPABASE_DB_URL` in `.env`
-- Check Supabase project is active
-- Ensure database password is URL-encoded
-
-#### Ollama Not Available
-**Problem:** "Ollama connection failed"  
-**Solution:**
-- Install Ollama: https://ollama.ai
-- Start Ollama service: `ollama serve`
-- Pull required models: `ollama pull nomic-embed-text` and `ollama pull mistral`
-- Verify `OLLAMA_BASE_URL` in `.env`
-
-#### Frontend Can't Connect to Backend
-**Problem:** CORS errors or network failures  
-**Solution:**
-- Check `VITE_API_BASE_URL` in `.env.local`
-- Verify backend is running and accessible
-- Check CORS configuration in `server/index.js`
-
-### Health Check Endpoints
-
-```bash
-# Backend health
-curl https://your-backend.onrender.com/health
-
-# Frontend (should return HTML)
-curl https://your-frontend.vercel.app
-
-# API test
-curl https://your-backend.onrender.com/api/auth/test
-```
 
 ### Logs & Debugging
 
@@ -541,21 +489,6 @@ curl https://your-backend.onrender.com/api/auth/test
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome.
-
-**Steps**
-
-1. Fork the repository
-2. Create a feature branch
-
-   ```bash
-   git checkout -b feat/your-feature
-   ```
-3. Implement changes with tests
-4. Run lint and tests locally
-5. Open a pull request with a clear description
 
 
 
