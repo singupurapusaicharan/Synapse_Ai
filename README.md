@@ -1,42 +1,43 @@
+Below is a **clean, structured, consistent, FAANG-style README** with **clear hierarchy, polished language, and uniform sections**.
+You can **directly replace your README.md** with this.
 
 ---
 
 # 🧠 Synapse AI
 
-**Synapse AI** is a production-ready, high-performance **TypeScript/JavaScript front-end scaffold** designed for building AI-powered user interfaces. It focuses on **clarity, scalability, and developer experience**, following engineering standards commonly used in large-scale (FAANG-level) frontend systems.
+**Synapse AI** is a **production-ready, high-performance AI-powered personal knowledge assistant** built with a modern **TypeScript + React** frontend and a **Node.js** backend.
+It enables intelligent search and chat across **Gmail and Google Drive** using **Retrieval-Augmented Generation (RAG)** while keeping privacy and performance at the core.
 
-The project serves as a strong foundation for AI dashboards, ML product UIs, internal tools, and modern web applications.
+Designed with **FAANG-level engineering standards**, Synapse AI is suitable for real-world deployment, large-scale systems, and recruiter-grade portfolios.
 
 ---
 
-## 🚀 AI-Ready Frontend Scaffold
+## 🚀 What Makes Synapse AI Stand Out
 
-Build clean, scalable, and type-safe AI interfaces with a modern frontend architecture and best-in-class tooling.
-
-**Tech Highlights**
-
-* TypeScript 5.x
-* React 18
-* Vite
-* Modern component and state patterns
+* AI-powered search over **your personal data**
+* End-to-end **TypeScript-first architecture**
+* **Privacy-first** design with local LLM processing
+* **Production deployed**, monitored, tested, and secured
+* Clean, scalable frontend scaffold for AI dashboards
 
 ---
 
 ## 📑 Table of Contents
 
 * Overview
-* Key Features
+* Features
+* Use Cases
 * Tech Stack
 * Architecture
 * Quick Start
 * Environment Configuration
 * Project Structure
-* Development
+* Development Scripts
 * Testing & Quality
 * Deployment
-* Contributing
-* Code of Conduct
+* Monitoring
 * Security
+* Contributing
 * License
 * Contact
 
@@ -44,63 +45,53 @@ Build clean, scalable, and type-safe AI interfaces with a modern frontend archit
 
 ## 📌 Overview
 
-Synapse AI is a **production-ready AI-powered personal knowledge assistant** that connects to your Gmail and Google Drive to provide intelligent search and chat capabilities. Built with modern TypeScript/React frontend and Node.js backend, it uses RAG (Retrieval-Augmented Generation) to answer questions based on your personal data.
+Synapse AI connects to your **Gmail** and **Google Drive** to provide **semantic search and conversational AI** over your personal content.
 
-### 🎯 **What It Does**
+It uses:
 
-* **Connect Your Data:** Securely connect Gmail and Google Drive via OAuth 2.0
-* **Intelligent Search:** Semantic search across your emails and documents using vector embeddings
-* **AI Chat:** Ask questions about your data and get AI-powered answers with citations
-* **Privacy-First:** Your data stays in your control, processed locally with Ollama
-
-### 🏆 **Production Ready**
-
-* ✅ **Deployed:** Live on Vercel (frontend) + Render (backend)
-* ✅ **Monitored:** 24/7 uptime monitoring with UptimeRobot
-* ✅ **Tested:** 94.44% test coverage with FAANG-level quality standards
-* ✅ **Secure:** 100% security score, no vulnerabilities
-* ✅ **Fast:** <500ms response times, optimized performance
-
-### 💡 **Use Cases**
-
-* Find specific emails quickly with natural language queries
-* Search across your Google Drive documents
-* Get AI-powered summaries of your communications
-* Ask questions about your personal knowledge base
-* Retrieve information without manual searching
+* **OAuth 2.0** for secure authentication
+* **Vector embeddings** for semantic retrieval
+* **RAG (Retrieval-Augmented Generation)** for accurate AI responses
+* **Local LLMs via Ollama** for privacy-preserving inference
 
 ---
 
-## ✨ Key Features
+## ✨ Features
 
-### Core Capabilities
+### 🔹 Core Capabilities
 
-| Feature             | Description                                 | Status |
-| ------------------- | ------------------------------------------- | ------ |
-| TypeScript-First    | Strict typing across the codebase           | ✅      |
-| Google OAuth        | Secure authentication with Google Sign-In   | ✅      |
-| Gmail Integration   | Connect and search Gmail messages           | ✅      |
-| Drive Integration   | Access Google Drive documents               | ✅      |
-| AI Chat             | RAG-powered chat with your data             | ✅      |
-| Vector Search       | Semantic search using embeddings            | ✅      |
-| Modular Components  | Reusable and composable UI components       | ✅      |
-| Fast Dev Experience | Instant HMR with Vite                       | ✅      |
-| Environment Ready   | Clean API and env configuration patterns    | ✅      |
-| Scalable Structure  | Clear separation of UI, services, and logic | ✅      |
-| Accessibility       | Semantic HTML and keyboard-friendly UI      | ✅      |
-| Responsive Design   | Mobile-first, works on all devices          | ✅      |
-| 24/7 Uptime         | Monitored by UptimeRobot                    | ✅      |
-| Security Tested     | 100% security score, no vulnerabilities     | ✅      |
+| Feature           | Description                             | Status |
+| ----------------- | --------------------------------------- | ------ |
+| TypeScript-First  | Strict typing across frontend & backend | ✅      |
+| Google OAuth      | Secure Google Sign-In                   | ✅      |
+| Gmail Integration | Search emails semantically              | ✅      |
+| Drive Integration | Search documents intelligently          | ✅      |
+| AI Chat           | Ask questions with citations            | ✅      |
+| Vector Search     | pgvector-powered similarity search      | ✅      |
+| Modular UI        | Reusable, composable components         | ✅      |
+| Accessibility     | Keyboard-friendly & semantic HTML       | ✅      |
+| Responsive Design | Mobile-first UI                         | ✅      |
 
-### Technical Highlights
+---
 
-* Strong type safety with TypeScript
-* Predictable state and data flow patterns
-* Clean service abstraction for API integration
-* Minimal and extensible styling approach
-* Performance-aware bundling and code splitting
-* Comprehensive test coverage (94.44%)
-* Production-ready deployment on Vercel + Render
+### 🔹 Production Readiness
+
+* ✅ **Frontend:** Deployed on Vercel
+* ✅ **Backend:** Deployed on Render
+* ✅ **Monitoring:** 24/7 uptime monitoring (UptimeRobot)
+* ✅ **Testing:** 94.44% test coverage
+* ✅ **Security:** 100% security score
+* ✅ **Performance:** < 500ms average response time
+
+---
+
+## 💡 Use Cases
+
+* Search emails using natural language
+* Retrieve information from Google Drive instantly
+* Generate AI summaries of conversations
+* Ask contextual questions over personal data
+* Eliminate manual searching across tools
 
 ---
 
@@ -108,37 +99,29 @@ Synapse AI is a **production-ready AI-powered personal knowledge assistant** tha
 
 ### Frontend
 
-* **Framework:** React 18 with TypeScript
-* **Build Tool:** Vite (fast HMR, optimized builds)
-* **Styling:** Tailwind CSS + shadcn/ui components
-* **State Management:** React Context + Hooks
-* **Routing:** React Router v6
-* **Deployment:** Vercel
+* React 18 + TypeScript
+* Vite
+* Tailwind CSS + shadcn/ui
+* React Router v6
+* Context API + Hooks
+* Deployed on **Vercel**
 
 ### Backend
 
-* **Runtime:** Node.js with Express
-* **Database:** PostgreSQL (Supabase)
-* **Authentication:** JWT + Google OAuth 2.0
-* **Vector Store:** pgvector for semantic search
-* **AI/ML:** Ollama for embeddings and chat
-* **Deployment:** Render
-* **Monitoring:** UptimeRobot (5-minute health checks)
+* Node.js + Express
+* PostgreSQL (Supabase)
+* JWT Authentication
+* Google OAuth 2.0
+* pgvector for embeddings
+* Ollama for local LLM inference
+* Deployed on **Render**
 
-### External Services
+### Tooling & DevOps
 
-* **Google APIs:** Gmail API, Google Drive API
-* **Supabase:** PostgreSQL database with pgvector
-* **Ollama:** Local LLM for embeddings and chat
-* **UptimeRobot:** Uptime monitoring and alerts
-
-### Tooling
-
-* ESLint (code quality)
-* Prettier (formatting)
-* TypeScript (type safety)
-* Jest (testing)
+* ESLint & Prettier
+* Jest
 * GitHub Actions (CI/CD)
+* UptimeRobot Monitoring
 
 ---
 
@@ -147,59 +130,35 @@ Synapse AI is a **production-ready AI-powered personal knowledge assistant** tha
 ### System Design
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                     Frontend (Vercel)                       │
-│  React + TypeScript + Vite + Tailwind CSS + shadcn/ui      │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ HTTPS/REST API
-┌─────────────────────▼───────────────────────────────────────┐
-│                  Backend (Render)                           │
-│  Node.js + Express + JWT Auth + Google OAuth                │
-├─────────────────────────────────────────────────────────────┤
-│  • Authentication & Authorization                           │
-│  • Google OAuth 2.0 Integration                             │
-│  • Gmail & Drive API Integration                            │
-│  • RAG Pipeline (Retrieval-Augmented Generation)            │
-│  • Vector Search with pgvector                              │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-        ┌─────────────┼─────────────┬─────────────┐
-        │             │             │             │
-┌───────▼──────┐ ┌───▼────────┐ ┌──▼─────────┐ ┌▼──────────┐
-│  Supabase    │ │   Ollama   │ │  Gmail API │ │ Drive API │
-│  PostgreSQL  │ │   (Local)  │ │  (Google)  │ │ (Google)  │
-│  + pgvector  │ │  Embeddings│ │            │ │           │
-└──────────────┘ └────────────┘ └────────────┘ └───────────┘
-        │
-┌───────▼──────────────────────────────────────────────────────┐
-│              UptimeRobot Monitoring                          │
-│  5-minute health checks • Uptime tracking • Alerts           │
-└──────────────────────────────────────────────────────────────┘
+Frontend (Vercel)
+ └── React + TypeScript + Vite
+       ↓
+Backend (Render)
+ └── Node.js + Express
+       ├─ OAuth & JWT Auth
+       ├─ RAG Pipeline
+       ├─ Gmail & Drive APIs
+       └─ Vector Search (pgvector)
+       ↓
+Supabase PostgreSQL + Ollama (Local LLM)
 ```
+
+---
 
 ### Data Flow
 
-1. **User Authentication:** Google OAuth 2.0 → JWT token → Session management
-2. **Data Ingestion:** Gmail/Drive → Text extraction → Chunking → Embeddings → Vector DB
-3. **Query Processing:** User question → Embedding → Vector search → Context retrieval
-4. **AI Response:** Context + Question → Ollama LLM → Answer with citations
-
-### Design Principles
-
-* **Security First:** OAuth 2.0, JWT tokens, encrypted credentials
-* **Privacy-Focused:** Local LLM processing, user data isolation
-* **Scalable Architecture:** Microservices-ready, stateless backend
-* **Performance Optimized:** Vector search, caching, lazy loading
-* **Type Safety:** End-to-end TypeScript contracts
-* **Monitoring:** 24/7 uptime tracking with UptimeRobot
+1. User logs in via Google OAuth
+2. Gmail & Drive data is ingested
+3. Text is chunked and embedded
+4. Stored in PostgreSQL with pgvector
+5. User query → embedding → vector search
+6. Context + query → LLM → response
 
 ---
 
 ## ⚡ Quick Start
 
 ### Prerequisites
-
-Ensure you have the following installed:
 
 * Node.js ≥ 18
 * npm ≥ 8 or yarn
@@ -209,32 +168,19 @@ Ensure you have the following installed:
 
 ### Installation
 
-Clone the repository:
-
 ```bash
 git clone https://github.com/singupurapusaicharan/Synapse_Ai.git
 cd Synapse_Ai
-```
-
-Install dependencies:
-
-```bash
 npm install
-# or
-yarn install
 ```
 
 ---
 
 ## 🔐 Environment Configuration
 
-Create a local environment file:
-
 ```bash
 cp .env.example .env
 ```
-
-Example variables:
 
 ```env
 NODE_ENV=development
@@ -252,8 +198,6 @@ VITE_API_BASE_URL=https://api.example.com
 npm run dev
 ```
 
-Starts a hot-reloading development server.
-
 ### Production Build
 
 ```bash
@@ -267,139 +211,55 @@ npm run preview
 
 ```text
 src/
- ├─ components/     # Reusable UI components
- ├─ pages/          # Route-level views
- ├─ hooks/          # Custom React hooks
- ├─ services/       # API clients and adapters
- ├─ styles/         # Global styles and themes
- ├─ utils/          # Helper utilities
- ├─ types/          # TypeScript interfaces
-public/             # Static assets
-tests/              # Unit / integration tests
+ ├─ components/
+ ├─ pages/
+ ├─ hooks/
+ ├─ services/
+ ├─ styles/
+ ├─ utils/
+ ├─ types/
+public/
+tests/
 .env.example
-package.json
-tsconfig.json
 vite.config.ts
-README.md
+tsconfig.json
 ```
 
 ---
 
-## 🛠 Development
-
-### Available Scripts
+## 🛠 Development Scripts
 
 ```bash
-npm run dev        # Start development server
-npm run build      # Build for production
-npm run preview    # Preview production build
-npm run lint       # Run ESLint
-npm run format     # Run Prettier
-npm run test       # Run tests
+npm run dev
+npm run build
+npm run preview
+npm run lint
+npm run format
+npm run test
 ```
-```bash
-
 
 
 
 ## 🚢 Deployment
 
-### 🌐 **Live Application**
+### Platforms
 
-**Frontend:** Deployed on Vercel  
-**Backend:** Deployed on Render  
-**Monitoring:** UptimeRobot (5-minute health checks)
-
-### 📊 **Uptime & Monitoring**
-
-The backend is monitored by **UptimeRobot** with 5-minute interval checks:
-- ✅ Prevents Render free tier from sleeping (15-minute inactivity timeout)
-- ✅ Keeps backend active 24/7 (within free tier limits)
-- ✅ Sends alerts if backend goes down
-- ⚠️ **Note:** Render free tier has 750 hours/month limit (~31 days)
-
-**Current Status:** Backend stays awake continuously with UptimeRobot pings
-
-### 🔧 **Deployment Platforms**
-
-#### Frontend (Vercel)
-```bash
-# Automatic deployment on push to main branch
-# Environment variables configured in Vercel dashboard
-```
-
-#### Backend (Render)
-```bash
-# Automatic deployment from GitHub
-# Health check endpoint: /health
-# UptimeRobot monitors: https://synapse-ai-backend-1303.onrender.com/health
-```
-
-### 📝 **Environment Variables**
-
-**Frontend (.env.local):**
-```env
-VITE_API_BASE_URL=https://your-backend-url.onrender.com/api
-```
-
-**Backend (.env):**
-```env
-# Database
-SUPABASE_URL=your-supabase-url
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SUPABASE_DB_URL=your-database-url
-
-# Authentication
-JWT_SECRET=your-jwt-secret
-JWT_EXPIRES_IN=7d
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# Server
-PORT=3001
-BACKEND_URL=https://your-backend-url.onrender.com
-FRONTEND_URL=https://your-frontend-url.vercel.app
-
-# Encryption
-ENCRYPTION_KEY=your-32-character-encryption-key
-
-# Ollama (optional)
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_EMBEDDING_MODEL=nomic-embed-text
-OLLAMA_CHAT_MODEL=mistral
-```
-
-### 🚀 **Deployment Workflow**
-
-1. **Configure environment variables** on hosting platforms
-2. **Push to main branch** - triggers automatic deployment
-3. **Verify deployment** - check health endpoints
-4. **Monitor uptime** - UptimeRobot tracks availability
-
-
-
-
-
-### Logs & Debugging
-
-**Backend logs (Render):**
-- Go to Render dashboard → Your service → Logs
-- Look for error messages and stack traces
-
-**Frontend logs:**
-- Open browser DevTools (F12) → Console
-- Check for network errors in Network tab
-
-**Database logs:**
-- Supabase dashboard → Logs
-- Check for connection issues or query errors
+* **Frontend:** Vercel
+* **Backend:** Render
+* **Database:** Supabase
+* **Monitoring:** UptimeRobot
 
 ---
 
 
 
+## 🔒 Security
+
+* OAuth 2.0 authentication
+* JWT-based authorization
+* Encrypted credentials
+* Zero known vulnerabilities
+* Privacy-first local LLM usage
 
 ---
 
