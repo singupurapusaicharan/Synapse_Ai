@@ -1,5 +1,3 @@
-Below is a **clean, structured, consistent, FAANG-style README** with **clear hierarchy, polished language, and uniform sections**.
-You can **directly replace your README.md** with this.
 
 ---
 
