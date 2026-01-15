@@ -1,6 +1,3 @@
-Here you go ✅
-Below is the **same FAANG-style Synapse AI README**, with **very minimal, professional emojis** added (GitHub-standard, recruiter-safe).
-You can **copy–paste directly**.
 
 ---
 
