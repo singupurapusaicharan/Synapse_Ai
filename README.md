@@ -1,185 +1,165 @@
-# Synapse AI 🧠  
-*Your Unified Personal Memory & Knowledge Workspace*  
+Synapse_Ai 💫🧠
+A delightful, high-performance TypeScript/JavaScript AI front-end scaffold — built for clarity, collaboration, and scaling. Synapse_Ai combines polished dev ergonomics with an approachable developer experience: cute, clean, and FAANG-grade.
 
----
+![TypeScript](https://img.shields.io/badge/TypeScript-54.6%25-blue?logo=typescript) ![JavaScript](https://img.shields.io/badge/JavaScript-43.9%25-yellow?logo=javascript) ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg) ![Build Status](https://img.shields.io/badge/build-pending-lightgrey.svg)
 
-## Introduction
+Table of Contents
 
-**Synapse AI** is a next-generation, full-stack Retrieval-Augmented Generation (RAG) application that empowers you to transform personal data from sources like Gmail and Google Drive into a highly searchable, conversational memory system. Designed with security, extensibility, and elegant user experience in mind, Synapse AI stands apart as a calm, modern workspace where your knowledge is always at your fingertips.
+About
+Key Features
+Tech Stack & Languages
+Demo & Screenshots
+Quickstart
+Prerequisites
+Install
+Environment
+Run (dev / build / production)
+Project Structure
+Architecture & Design Notes
+Testing & Quality
+Deployment
+Contributing
+Code of Conduct
+Security
+License
+Contact & Acknowledgements
+About
+Synapse_Ai is a sleek, modular front-end template optimized for AI-powered experiences. It emphasizes type-safety (TypeScript-first), modular styling, accessible components, and an easily auditable architecture — ideal for prototypes, internal tools, or production UI for ML services.
 
----
+Key Features
+TypeScript-first codebase with strict typing and modern patterns
+Clean component architecture and predictable state flows
+Pre-configured build & dev scripts (fast refresh, optimized builds)
+Linting, formatting, and basic test setup
+Environment-ready patterns for secrets and API integration
+Small, extensible CSS bundle (CSS Modules / scoped styles)
+Developer-friendly README and contribution guidelines (this file 😉)
+Tech Stack & Languages
+TypeScript — 54.6%
+JavaScript — 43.9%
+CSS — 1.2%
+HTML — 0.3%
+Tools (typical)
 
-## ✨ Key Features
+Node.js (LTS)
+npm or yarn
+TypeScript
+ESLint + Prettier
+Jest / Testing Library (unit & integration)
+GitHub Actions (CI) — optional
+Demo & Screenshots
+Demo: (Add your hosted demo link here — e.g., Vercel, Netlify) Screenshots/GIFs: Add images in /docs/screenshots or link them here.
 
-### Unified Personal Knowledge Hub
-- **Connect and Centralize:** Integrates Gmail and Google Drive into one powerful memory graph.
-- **Contextual Conversations:** Ask questions using natural language and receive answers grounded in your personal data, complete with citations and deep links.
+Example placeholders: ![Screenshot 1](./docs/screenshots/screenshot-1.png) ![Screenshot 2](./docs/screenshots/screenshot-2.png)
 
-### Advanced Search & Retrieval
-- **Semantic + Hybrid Search:** Leverages vector embeddings (via pgvector) and metadata for ultra-relevant results.
-- **Fast Retrieval:** Optimized indexes ensure millisecond response times even with large data volumes.
+Quickstart
+Everything below assumes a UNIX-like shell. Replace npm with yarn if you prefer.
 
-### Robust Authentication & Security
-- **Secure Auth:** Email/password and “Continue with Google” authentication, isolated from data access permissions.
-- **Encrypted Tokens:** OAuth tokens stored with AES-256-GCM encryption for airtight security.
-- **Strict Data Isolation:** Every user’s data remains completely segregated—your privacy is non-negotiable.
+Prerequisites
 
-### Modern, Minimal UI/UX
-- **Calm Interface:** Focused, distraction-free design theme.
-- **Speed & Clarity:** Instant load times, clear information hierarchy, and responsive layout.
+Node.js >= 16 (LTS recommended)
+npm >= 8 or yarn >= 1.22
+Git
+Install
 
-### Production-Grade Architecture
-- **Separation of Concerns:** Clear delineation of frontend, backend, and storage layers for maintainability and scalability.
-- **Ready for Extensions:** Modular approach makes it easy to add new connectors (Notion, Slack, Calendar) or swap AI providers.
+Clone the repo
 
----
+git clone https://github.com/singupurapusaicharan/Synapse_Ai.git
+cd Synapse_Ai
+Install dependencies
 
-## 🧱 Tech Stack Overview
+npm install
+or
+yarn install
+Environment
 
-| Layer      | Technologies                               |
-|------------|--------------------------------------------|
-| Frontend   | React 18, TypeScript, Vite, Tailwind, shadcn/ui, TanStack Query    |
-| Backend    | Node.js, Express, JWT, Google APIs, Nodemailer                    |
-| Database   | PostgreSQL (Supabase), pgvector (vector search), Optimized Indexes |
-| AI/ML      | Embeddings: nomic-embed-text, Chat: mistral (fallback: phi)        |
-| Deployment | Vercel (frontend), Render/Railway/Fly.io (backend)                 |
+Copy the example env and fill values:
+cp .env.example .env
+Typical variables (examples — add/remove as needed):
+NODE_ENV=development
+PORT=3000
+REACT_APP_API_URL=https://api.example.com
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+Run (Development)
 
----
+npm run dev
+npm run start:dev These start a hot-reloading dev server.
+Build (Production)
 
-## 🗂️ Project Structure
+npm run build
+npm run preview Builds optimized production assets.
+Scripts (common)
 
-```
-/
-├── src/          # React frontend: UI, business logic
-├── server/       # Express backend: APIs, routes, middleware
-│   ├── routes/       # Authentication, OAuth, core APIs
-│   ├── lib/          # Utilities for ingestion, OAuth, vectors
-│   ├── middleware/   # Auth guards, rate limiting
-│   └── scripts/      # Database setup, diagnostics
-├── public/       # Static assets
-├── vercel.json   # SPA rewrites for Vercel deployment
-├── package.json  # Monorepo scripts
-└── README.md     
-```
+npm run dev — start dev server
+npm run build — build production assets
+npm run start — start production server (if applicable)
+npm run lint — run ESLint
+npm run format — run Prettier
+npm run test — run tests
+npm run coverage — test coverage
+Project Structure
+A suggested, conventional layout (adjust to your repo contents):
 
-*Design simplicity is foundational—making it both readable and extensible.*
+src/
+components/ — reusable UI components
+pages/ — route-based pages (if applicable)
+hooks/ — custom React hooks
+services/ — API client and adapters
+styles/ — global styles & themes
+utils/ — helpers & utilities
+types/ — TypeScript types and interfaces
+public/ — static assets
+scripts/ — build or deployment helper scripts
+tests/ — integration / e2e tests (if present)
+.github/workflows/ — CI workflows
+.env.example
+README.md
+tsconfig.json
+package.json
+Architecture & Design Notes
+Single responsibility components: each component does one small thing; composition preferred over inheritance.
+Service layer: API calls are centralized under services/, so swapping or mocking the backend is trivial.
+Types: All API contracts should have a corresponding TypeScript type/interface in types/.
+Accessibility-first: focus on semantic HTML, ARIA attributes, and keyboard navigation.
+Performance: lazy-load non-critical components, optimize images, and use code-splitting for large bundles.
+Testing & Quality
+Unit tests: Jest + Testing Library (React)
+E2E tests: Cypress or Playwright (optional)
+Linting: ESLint with recommended TypeScript rules
+Formatting: Prettier
+Pre-commit hooks: Husky + lint-staged recommended (preconfigured in this repo or configurable)
+Example test command:
 
----
+npm run test Example lint command:
+npm run lint Example format command:
+npm run format
+Deployment
+Build artifacts produced by npm run build can be deployed to static hosts (Vercel, Netlify) or Node hosts (Heroku, Railway) depending on the setup.
+Recommended steps:
+Ensure environment variables are configured in your hosting platform.
+Configure a CI workflow to run tests, lint, and build.
+Deploy build/ or the server bundle produced by the build step.
+CI (suggested)
 
-## 🔐 Security Model
+GitHub Actions workflow:
+on: [push, pull_request]
+jobs:
+install -> lint -> test -> build -> upload artifact (optional)
+Add status badge to README when CI is set up.
+Contributing
+We welcome contributions! Please follow these steps:
 
-- **Two-stage Google OAuth:**
-  - **Login:** Used strictly for account authentication.
-  - **Data Connectors:** Independent tokens for Gmail/Drive ingestion, never shared with auth.
-- **Encryption-first:** All tokens are encrypted at rest using AES-256-GCM.
-- **Limit-of-least-privilege:** Only read-only, minimal Google API scopes granted.
-- **Per-user Data Guardrails:** Each user’s memory is siloed—full privacy assurance.
-- **Additional Protections:** JWT authentication, bcrypt password hashing, and rate limiting on all endpoints.
+Fork the repo
+Create a feature branch: git checkout -b feat/your-feature
+Implement tests for new behaviour
+Run lint & tests locally
+Open a PR with a clear description and reference any issues
+Expect an automated CI run and a code review
+Guidelines
 
----
+Keep commits small and atomic; use conventional commit messages when possible.
+Write tests for bug fixes and new features.
+Ensure changes conform to TypeScript strictness and linting rules.
+Code of Conduct
+Be kind, inclusive, and constructive. Respect everyone’s time and contributions. If you witness or experience unacceptable behavior, please open an issue or contact the maintainers.
 
-## 🗄️ Database Architecture
-
-- **Core Tables:**
-  - `users`, `sessions`, `sources`, `oauth_tokens`, `document_chunks` (vectors)
-  - `chat_sessions`, `chat_messages`, `query_history`
-- **Security & Performance:**
-  - User data isolation at design level.
-  - High-performance pgvector for retrieval.
-  - Embedding indexes for instant search.
-
----
-
-## ⚙️ Environment & Configuration
-
-- Single root `.env` file for all sensitive configs.
-- **Frontend:** All variables prefixed with `VITE_`.
-- **Backend:** Loaded via dotenv library.
-- **Safe Defaults:** Example file (`env.example.txt`) provided.
-- **Best Practices:** Never commit real `.env` files; rotate keys promptly if disclosed.
-
----
-
-## 🧪 Local Development Quickstart
-
-1. **Install dependencies**
-   ```sh
-   npm install
-   ```
-2. **Initialize the database**
-   ```sh
-   npm run init:db
-   ```
-3. **Start development servers**
-   ```sh
-   npm run dev:all
-   ```
-4. **Access Synapse AI:**
-   - Frontend: [http://localhost:8080](http://localhost:8080)
-   - Backend: [http://localhost:3001](http://localhost:3001)
-   - Health Check: [http://localhost:3001/health](http://localhost:3001/health)
-
----
-
-## 🔌 API Reference
-
-### Authentication
-- `POST /api/auth/signup` — Register user
-- `POST /api/auth/signin` — Login
-- `POST /api/auth/signout` — Logout
-- `GET  /api/auth/me`     — Get current user
-
-### Chat (RAG)
-- `POST /api/chat/session/new` — Start new chat
-- `POST /api/chat/message`     — Send/receive messages
-- `GET  /api/chat/sessions`    — List sessions
-
-### Sources Management
-- `GET  /api/sources`
-- `POST /api/sources/connect`
-- `POST /api/sources/sync`
-- `POST /api/sources/disconnect`
-
----
-
-## 🚀 Deployment Strategy
-
-| Part      | Recommended     | Notes                           |
-|-----------|----------------|---------------------------------|
-| Frontend  | Vercel         | Set `VITE_API_BASE_URL` for prod|
-| Backend   | Render/Railway/Fly.io | Set all URIs correctly; backend is never on Vercel serverless |
-| Config    | Update Google OAuth redirect URIs for your domain.|
-
----
-
-## 🛡️ Security Best Practices
-
-- JWT-based authentication
-- bcrypt for password hashing
-- Encrypted storage for OAuth tokens
-- Strict, rate-limited APIs
-- Per-user data boundaries
-
----
-
-## 🧭 Vision
-
-> **Synapse AI** is engineered as your personalized knowledge layer—remembering, retrieving, and intelligently reasoning over your scattered digital information, all while staying calm, secure, and under your control.
-
-**Modular. Secure. Extendable. Intuitive.**  
-*Own your memory. Shape your knowledge.*
-
----
-
-## 💡 Extending Synapse AI
-
-- **Add new data sources**: Easily integrate Notion, Slack, Calendar, etc.
-- **Swap AI providers:** Modular design supports different model backends.
-- **Scale easily:** Grows from local-first to cloud-scale inference with zero friction.
-
----
-
-
----
-
-## ✨ Experience a new era of personal memory — [Start with Synapse AI](#)!
