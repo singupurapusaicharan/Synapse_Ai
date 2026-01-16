@@ -47,6 +47,7 @@ export function Sidebar({
     <aside
       className={cn(
         'h-full bg-sidebar/50 backdrop-blur-xl border-r border-border/30 flex flex-col transition-all duration-500 ease-out',
+        'hidden md:flex', // Hide on mobile, show on tablet and up
         collapsed ? 'w-[72px]' : 'w-56'
       )}
     >

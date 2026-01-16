@@ -60,7 +60,7 @@ export function ChatPanel({
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
+    <div className="flex-1 flex flex-col min-w-0 w-full">
       {/* Messages Area */}
       <ScrollArea
         className="flex-1"
@@ -145,17 +145,17 @@ const MessagesList = memo(function MessagesList({
 
 function EmptyStateNoSources({ onNavigateToSources }: { onNavigateToSources?: () => void }) {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center px-4 py-20">
-      <div className="relative mb-8 animate-float">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center glow-primary">
-          <Database className="w-9 h-9 text-primary-foreground" />
+    <div className="h-full flex flex-col items-center justify-center text-center px-4 py-12 sm:py-20">
+      <div className="relative mb-6 sm:mb-8 animate-float">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center glow-primary">
+          <Database className="w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground" />
         </div>
       </div>
       
-      <h2 className="text-2xl font-semibold mb-3 animate-in">
+      <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 animate-in px-4">
         Connect Gmail/Drive to start asking questions
       </h2>
-      <p className="text-muted-foreground text-sm max-w-md mb-10 animate-in-delayed">
+      <p className="text-muted-foreground text-xs sm:text-sm max-w-md mb-8 sm:mb-10 animate-in-delayed px-4">
         Connect your data sources to enable semantic search across your emails, documents, and notes.
       </p>
       
@@ -175,22 +175,22 @@ function EmptyStateNoSources({ onNavigateToSources }: { onNavigateToSources?: ()
 
 function EmptyStateWithSources() {
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center px-4 py-20">
-      <div className="relative mb-8 animate-float">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center glow-primary">
-          <Sparkles className="w-9 h-9 text-primary-foreground" />
+    <div className="h-full flex flex-col items-center justify-center text-center px-4 py-12 sm:py-20">
+      <div className="relative mb-6 sm:mb-8 animate-float">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center glow-primary">
+          <Sparkles className="w-8 h-8 sm:w-9 sm:h-9 text-primary-foreground" />
         </div>
       </div>
       
-      <h2 className="text-2xl font-semibold mb-3 animate-in">
+      <h2 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-3 animate-in px-4">
         How can I help you today?
       </h2>
-      <p className="text-muted-foreground text-sm max-w-md mb-10 animate-in-delayed">
+      <p className="text-muted-foreground text-xs sm:text-sm max-w-md mb-8 sm:mb-10 animate-in-delayed px-4">
         Ask me anything about your emails, documents, and notes. 
         I'll search across all your connected sources.
       </p>
       
-      <div className="flex flex-wrap justify-center gap-3 max-w-xl">
+      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-xl px-4">
         {[
           { icon: MessageCircle, text: 'What meetings do I have this week?' },
           { icon: MessageCircle, text: 'Find the project proposal from last month' },
@@ -198,11 +198,11 @@ function EmptyStateWithSources() {
         ].map((suggestion, i) => (
           <button
             key={i}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm rounded-xl bg-secondary/40 hover:bg-secondary/60 border border-border/40 hover:border-primary/30 transition-all duration-300 hover:glow-subtle group"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl bg-secondary/40 hover:bg-secondary/60 border border-border/40 hover:border-primary/30 transition-all duration-300 hover:glow-subtle group"
             style={{ animationDelay: `${i * 100}ms` }}
           >
-            <suggestion.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+            <suggestion.icon className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+            <span className="text-muted-foreground group-hover:text-foreground transition-colors text-left">
               {suggestion.text}
             </span>
           </button>

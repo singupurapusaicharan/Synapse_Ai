@@ -476,10 +476,10 @@ export function Dashboard() {
 
   // Authenticated dashboard view
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Navbar onNavigate={handleNavigate} />
 
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         <Sidebar
           activePath="/"
           onNavigate={handleNavigate}
@@ -488,15 +488,17 @@ export function Dashboard() {
           onNewChat={handleNewChat}
         />
 
-        <ChatPanel
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-          hasSources={hasSources}
-          onNewChat={handleNewChat}
-          onNavigateToSources={() => navigate('/sources')}
+        <div className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">
+          <ChatPanel
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            hasSources={hasSources}
+            onNewChat={handleNewChat}
+            onNavigateToSources={() => navigate('/sources')}
             userEmail={user?.email || ''}
-        />
+          />
+        </div>
       </div>
 
       <StatusBar />
