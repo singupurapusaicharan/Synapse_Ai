@@ -157,10 +157,10 @@ export function History() {
           onCollapsedChange={setSidebarCollapsed}
         />
 
-        <main className="flex-1 p-6 lg:p-10 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-10 overflow-auto">
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-semibold mb-2">Chat History</h1>
-            <p className="text-muted-foreground mb-8">
+            <h1 className="text-xl sm:text-2xl font-semibold mb-2">Chat History</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
               Your past conversations and chat sessions.
             </p>
 
@@ -193,32 +193,32 @@ export function History() {
                   <div
                     key={session.id}
                     onClick={() => handleSessionClick(session.id)}
-                    className="p-4 rounded-xl glass-card group transition-all duration-300 hover:border-primary/20 cursor-pointer"
+                    className="p-3 sm:p-4 rounded-xl glass-card group transition-all duration-300 hover:border-primary/20 cursor-pointer"
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3 flex-1">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5">
-                          <MessageSquare className="w-4 h-4 text-primary" />
+                    <div className="flex items-start justify-between gap-2 sm:gap-4">
+                      <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5 flex-shrink-0">
+                          <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="w-full">
-                            <p className="font-medium text-sm leading-relaxed">
+                            <p className="font-medium text-xs sm:text-sm leading-relaxed truncate">
                               {session.title || 'New Chat'}
                             </p>
                             {session.last_message_preview && (
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                              <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-1">
                                 {session.last_message_preview}
                               </p>
                             )}
-                            <div className="flex items-center gap-3 mt-2">
-                              <span className="text-xs text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
+                              <span className="text-[10px] sm:text-xs text-muted-foreground">
                                 {formatDate(session.created_at)}
                               </span>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-[10px] sm:text-xs text-muted-foreground">
                                 {formatTimeAgo(session.created_at)}
                               </span>
                               {session.message_count > 0 && (
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-[10px] sm:text-xs text-muted-foreground">
                                   {session.message_count} {session.message_count === 1 ? 'message' : 'messages'}
                                 </span>
                               )}
@@ -230,9 +230,9 @@ export function History() {
                         variant="ghost"
                         size="sm"
                         onClick={(e) => handleDelete(session.id, e)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive h-8 w-8 p-0 flex-shrink-0"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </Button>
                     </div>
                   </div>

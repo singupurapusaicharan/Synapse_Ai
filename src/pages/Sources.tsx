@@ -441,10 +441,10 @@ export function Sources() {
           onCollapsedChange={setSidebarCollapsed}
         />
 
-        <main className="flex-1 p-6 lg:p-10 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-10 overflow-auto">
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-2xl font-semibold mb-2">Connected Sources</h1>
-            <p className="text-muted-foreground mb-8">
+            <h1 className="text-xl sm:text-2xl font-semibold mb-2">Connected Sources</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
               Manage your data sources to search across all your content.
             </p>
 
@@ -466,26 +466,26 @@ export function Sources() {
                     <div
                       key={availableSource.type}
                       className={cn(
-                        'p-5 rounded-2xl glass-card transition-all duration-300',
+                        'p-4 sm:p-5 rounded-2xl glass-card transition-all duration-300',
                         isConnected && 'border-primary/20'
                       )}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                           <div className={cn(
-                            'w-12 h-12 rounded-xl flex items-center justify-center',
+                            'w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0',
                             isConnected 
                               ? 'bg-gradient-to-br from-primary/20 to-accent/20' 
                               : 'bg-muted/50'
                           )}>
                             <Icon className={cn(
-                              'w-6 h-6',
+                              'w-5 h-5 sm:w-6 sm:h-6',
                               isConnected ? 'text-primary' : 'text-muted-foreground'
                             )} />
                           </div>
-                          <div>
-                            <h3 className="font-medium">{availableSource.name}</h3>
-                            <p className="text-sm text-muted-foreground">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-medium text-sm sm:text-base truncate">{availableSource.name}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               {isConnected 
                                 ? 'Connected'
                                 : 'Not connected'
@@ -494,7 +494,7 @@ export function Sources() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           {isConnected && (
                             <>
                               <Button
@@ -502,22 +502,22 @@ export function Sources() {
                                 size="sm"
                                 onClick={() => handleSync(availableSource.type)}
                                 disabled={syncing === availableSource.type}
-                                className="text-muted-foreground hover:text-foreground"
+                                className="text-muted-foreground hover:text-foreground text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                               >
                                 <RefreshCw className={cn(
-                                  'w-4 h-4 mr-2',
+                                  'w-3 h-3 sm:w-4 sm:h-4 sm:mr-2',
                                   syncing === availableSource.type && 'animate-spin'
                                 )} />
-                                Sync
+                                <span className="hidden sm:inline">Sync</span>
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDisconnect(availableSource.type)}
-                                className="text-muted-foreground hover:text-destructive"
+                                className="text-muted-foreground hover:text-destructive text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
                               >
-                                <X className="w-4 h-4 mr-2" />
-                                Disconnect
+                                <X className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Disconnect</span>
                               </Button>
                             </>
                           )}
@@ -526,16 +526,17 @@ export function Sources() {
                               size="sm"
                               onClick={() => handleConnect(availableSource.type)}
                               disabled={connecting === availableSource.type}
-                              className="rounded-lg"
+                              className="rounded-lg text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4"
                             >
                               {connecting === availableSource.type ? (
                                 <>
-                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                                  Connecting...
+                                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
+                                  <span className="hidden xs:inline">Connecting...</span>
+                                  <span className="xs:hidden">...</span>
                                 </>
                               ) : (
                                 <>
-                                  <Plus className="w-4 h-4 mr-2" />
+                                  <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                                   Connect
                                 </>
                               )}
@@ -545,9 +546,9 @@ export function Sources() {
                       </div>
 
                       {isConnected && sourceStatus?.last_synced_at && (
-                        <div className="mt-4 pt-4 border-t border-border/30 flex items-center gap-2 text-xs text-muted-foreground">
-                          <Check className="w-3 h-3 text-accent" />
-                          Last synced: {new Date(sourceStatus.last_synced_at).toLocaleString()}
+                        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/30 flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
+                          <Check className="w-3 h-3 text-accent flex-shrink-0" />
+                          <span className="truncate">Last synced: {new Date(sourceStatus.last_synced_at).toLocaleString()}</span>
                         </div>
                       )}
                     </div>
