@@ -39,13 +39,16 @@ export function getAuthUrl(state = '') {
   }
 
   console.log(`[OAuth] Using redirect URI: ${REDIRECT_URI}`);
+  console.log(`[OAuth] BACKEND_URL: ${BACKEND_URL}`);
   console.log(`[OAuth] Make sure this EXACT URI is added in Google Cloud Console`);
+  console.log(`[OAuth] State parameter length: ${state.length}`);
 
   return oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
     prompt: 'consent', // Force consent to get refresh token
     state: state, // Include state for tracking
+    include_granted_scopes: true, // Incremental authorization
   });
 }
 

@@ -40,13 +40,15 @@ router.get('/google', verifySession, async (req, res) => {
     }
 
     // Create state parameter with userId and sourceType
-    const state = JSON.stringify({
+    // Use Base64 encoding instead of JSON.stringify + encodeURIComponent for better compatibility
+    const stateObj = {
       userId: userId,
       sourceType: sourceType || 'gmail',
-    });
+    };
+    const state = Buffer.from(JSON.stringify(stateObj)).toString('base64');
 
     // Get OAuth URL with state
-    const authUrl = getAuthUrl(encodeURIComponent(state));
+    const authUrl = getAuthUrl(state);
     console.log(`[OAuth] Redirecting to Google OAuth for user ${userId}, sourceType: ${sourceType || 'gmail'}`);
     console.log(`[OAuth] Google OAuth URL generated successfully`);
 
@@ -98,11 +100,15 @@ router.get('/google/callback', async (req, res) => {
     
     if (state) {
       try {
-        const stateData = JSON.parse(decodeURIComponent(state));
+        // Decode Base64 state parameter
+        const stateJson = Buffer.from(state, 'base64').toString('utf-8');
+        const stateData = JSON.parse(stateJson);
         userId = stateData.userId;
         sourceType = stateData.sourceType || 'gmail';
+        console.log(`[OAuth] Decoded state:`, { userId, sourceType });
       } catch (error) {
-        console.error('Error parsing state:', error);
+        console.error('[OAuth] Error parsing state:', error);
+        console.error('[OAuth] State value:', state);
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
         return res.redirect(`${frontendUrl}/sources?error=oauth_failed&reason=invalid_state`);
       }
