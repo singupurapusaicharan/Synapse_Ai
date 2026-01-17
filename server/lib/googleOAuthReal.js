@@ -39,7 +39,8 @@ function getRedirectUri(req) {
   
   // Otherwise, try to detect from request
   if (req) {
-    const protocol = req.protocol || (req.headers['x-forwarded-proto'] || 'http');
+    // Render and most cloud providers use x-forwarded-proto header
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
     const host = req.get('host');
     if (host) {
       const detectedUrl = `${protocol}://${host}/auth/google/callback`;

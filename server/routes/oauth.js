@@ -12,7 +12,8 @@ const router = express.Router();
  * Debug endpoint to show OAuth configuration
  */
 router.get('/debug', (req, res) => {
-  const protocol = req.protocol || (req.headers['x-forwarded-proto'] || 'http');
+  // Render and most cloud providers use x-forwarded-proto header
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
   const host = req.get('host');
   const detectedRedirectUri = `${protocol}://${host}/auth/google/callback`;
   const configuredBackendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
@@ -28,6 +29,7 @@ router.get('/debug', (req, res) => {
     detected: {
       protocol,
       host,
+      'x-forwarded-proto': req.headers['x-forwarded-proto'] || 'not set',
       REDIRECT_URI: detectedRedirectUri,
     },
     instructions: {
