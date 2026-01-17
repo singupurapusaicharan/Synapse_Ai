@@ -770,18 +770,19 @@ Please provide a detailed answer based on the context above.`;
               metadata.gmailOwnerEmail ||
               null;
             
-            // Gmail web deep link formats:
-            // - Message: https://mail.google.com/mail/u/{accountIndex}/#inbox/{messageId}
-            // - Thread:  https://mail.google.com/mail/u/{accountIndex}/#all/{threadId}
-            // We avoid guessing accountIndex here.
-            // For correct multi-account routing, prefer `?authuser={email}` (no `/u/` needed).
-            const base = ownerEmail
-              ? `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}`
-              : 'https://mail.google.com/mail/';
-            if (threadId) {
-              deepLink = `${base}#all/${threadId}`;
-            } else if (messageId) {
-              deepLink = `${base}#inbox/${messageId}`;
+            // Gmail universal deep link format that works on ALL devices (mobile, desktop, web):
+            // https://mail.google.com/mail/u/0/#inbox/{messageId}
+            // 
+            // Using /u/0/ works universally because:
+            // 1. Gmail automatically redirects to the correct account if user is signed in
+            // 2. Works on mobile apps, desktop, and web
+            // 3. More reliable than ?authuser= which can fail on mobile
+            //
+            // Priority: messageId > threadId (message is more specific)
+            if (messageId) {
+              deepLink = `https://mail.google.com/mail/u/0/#inbox/${messageId}`;
+            } else if (threadId) {
+              deepLink = `https://mail.google.com/mail/u/0/#inbox/${threadId}`;
             } else {
               deepLink = null;
             }

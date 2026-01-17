@@ -389,11 +389,9 @@ export async function ingestGmail(userId) {
           sourceType: 'gmail',
           sourceItemId: message.id,
           title: subject,
-          // Use exact Gmail message ID format for citations
-          // Prefer threadId in URL (opens conversation), fall back to message id
-          url: ownerEmail
-            ? `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#inbox/${msg.threadId || message.id}`
-            : `https://mail.google.com/mail/#inbox/${msg.threadId || message.id}`,
+          // Universal Gmail deep link format that works on ALL devices (mobile, desktop, web)
+          // Using /u/0/ with message ID - Gmail auto-redirects to correct account
+          url: `https://mail.google.com/mail/u/0/#inbox/${message.id}`,
           chunks,
           embeddings,
           metadata: {

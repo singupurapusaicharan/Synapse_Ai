@@ -38,12 +38,16 @@ export function buildGmailInboxUrl(accountEmail?: string | null, accountIndex?: 
 }
 
 /**
- * Gmail deep links:
- * - Message: `https://mail.google.com/mail/u/{accountIndex}/#inbox/{messageId}`
- * - Thread:  `https://mail.google.com/mail/u/{accountIndex}/#all/{threadId}`
- *
- * If `accountIndex` is unknown, we use `/u/?authuser=...` to let Google route
- * to the right signed-in account based on `accountEmail`.
+ * Gmail deep links that work universally on ALL devices (mobile, desktop, web):
+ * - Format: `https://mail.google.com/mail/u/0/#inbox/{messageId}`
+ * 
+ * Using /u/0/ is the most reliable approach because:
+ * 1. Gmail automatically redirects to the correct account if user is signed in
+ * 2. Works consistently on mobile apps, desktop browsers, and web
+ * 3. More reliable than ?authuser= which can fail on mobile devices
+ * 4. Simpler than trying to guess account index
+ * 
+ * Priority: messageId > threadId (message is more specific)
  */
 export function buildGmailDeepLinkUrl(input: GmailDeepLinkInput): string | null {
   const messageId = input.providerMessageId?.trim() || null;
@@ -52,26 +56,16 @@ export function buildGmailDeepLinkUrl(input: GmailDeepLinkInput): string | null 
   const safeMessageId = messageId && isSafeGmailId(messageId) ? messageId : null;
   const safeThreadId = threadId && isSafeGmailId(threadId) ? threadId : null;
 
-  const email = input.accountEmail ? normalizeEmail(input.accountEmail) : null;
-
-  let base: string;
-  if (typeof input.accountIndex === 'number' && Number.isInteger(input.accountIndex) && input.accountIndex >= 0) {
-    base = `https://mail.google.com/mail/u/${input.accountIndex}/`;
-  } else if (email) {
-    // Most reliable multi-account routing without guessing accountIndex.
-    base = `https://mail.google.com/mail/?authuser=${encodeURIComponent(email)}`;
-  } else {
-    base = 'https://mail.google.com/mail/';
+  // Use universal format with /u/0/ - works on all devices
+  if (safeMessageId) {
+    return `https://mail.google.com/mail/u/0/#inbox/${safeMessageId}`;
   }
 
   if (safeThreadId) {
-    return `${base}#all/${safeThreadId}`;
-  }
-
-  if (safeMessageId) {
-    return `${base}#inbox/${safeMessageId}`;
+    return `https://mail.google.com/mail/u/0/#inbox/${safeThreadId}`;
   }
 
   return null;
 }
+
 
