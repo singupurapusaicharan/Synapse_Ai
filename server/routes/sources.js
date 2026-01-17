@@ -193,33 +193,47 @@ router.post('/sync', authenticateToken, syncRateLimit, async (req, res) => {
         if (gmailCheck.rows.length > 0 && gmailCheck.rows[0].status === 'connected') {
           console.log(`[API] Starting Gmail sync for user ${userId}`);
           
-          try {
-            results.gmail = await ingestGmail(userId);
-            if (results.gmail?.error) {
-              console.log(`[API] Gmail sync completed with error for user ${userId}: ${results.gmail.error}`);
-            } else if (results.gmail?.warnings?.length) {
-              console.log(`[API] Gmail sync completed with warnings for user ${userId}: ${results.gmail.warnings.join(' | ')}`);
-            } else {
-              console.log(`[API] Gmail sync completed successfully for user ${userId}`);
-            }
+          // Check if OAuth tokens exist
+          const tokenCheck = await pool.query(
+            'SELECT user_id FROM oauth_tokens WHERE user_id = $1',
+            [userId]
+          );
+          
+          if (tokenCheck.rows.length === 0) {
+            console.error(`[API] No OAuth tokens found for user ${userId}`);
+            results.gmail = { error: 'Gmail connection incomplete. Please reconnect Gmail from Sources.' };
+          } else {
+            try {
+              results.gmail = await ingestGmail(userId);
+              if (results.gmail?.error) {
+                console.log(`[API] Gmail sync completed with error for user ${userId}: ${results.gmail.error}`);
+              } else if (results.gmail?.warnings?.length) {
+                console.log(`[API] Gmail sync completed with warnings for user ${userId}: ${results.gmail.warnings.join(' | ')}`);
+              } else {
+                console.log(`[API] Gmail sync completed successfully for user ${userId}`);
+              }
 
-            // Only mark "last_synced_at" after a successful ingestion (no error)
-            if (!results.gmail?.error) {
-              await pool.query(
-                `UPDATE sources
-                 SET last_synced_at = CURRENT_TIMESTAMP,
-                     updated_at = CURRENT_TIMESTAMP
-                 WHERE user_id = $1 AND source_type = 'gmail'`,
-                [userId]
-              );
-            }
-          } catch (ingestionError) {
-            console.error(`[API] Gmail ingestion error for user ${userId}:`, ingestionError);
-            const msg = String(ingestionError?.message || '');
-            if (msg.includes('OAUTH_INVALID_GRANT') || msg.includes('invalid_grant')) {
-              results.gmail = { error: 'Gmail authorization expired. Please reconnect Gmail from Sources.' };
-            } else {
-              results.gmail = { error: msg || 'Gmail sync failed' };
+              // Only mark "last_synced_at" after a successful ingestion (no error)
+              if (!results.gmail?.error) {
+                await pool.query(
+                  `UPDATE sources
+                   SET last_synced_at = CURRENT_TIMESTAMP,
+                       updated_at = CURRENT_TIMESTAMP
+                   WHERE user_id = $1 AND source_type = 'gmail'`,
+                  [userId]
+                );
+              }
+            } catch (ingestionError) {
+              console.error(`[API] Gmail ingestion error for user ${userId}:`, ingestionError);
+              console.error(`[API] Error stack:`, ingestionError.stack);
+              const msg = String(ingestionError?.message || '');
+              if (msg.includes('OAUTH_INVALID_GRANT') || msg.includes('invalid_grant')) {
+                results.gmail = { error: 'Gmail authorization expired. Please reconnect Gmail from Sources.' };
+              } else if (msg.includes('No OAuth tokens found')) {
+                results.gmail = { error: 'Gmail connection incomplete. Please reconnect Gmail from Sources.' };
+              } else {
+                results.gmail = { error: msg || 'Gmail sync failed' };
+              }
             }
           }
         } else {
@@ -227,9 +241,12 @@ router.post('/sync', authenticateToken, syncRateLimit, async (req, res) => {
         }
       } catch (error) {
         console.error(`[API] Gmail sync error for user ${userId}:`, error);
+        console.error(`[API] Error stack:`, error.stack);
         const msg = String(error?.message || '');
         if (msg.includes('OAUTH_INVALID_GRANT') || msg.includes('invalid_grant')) {
           results.gmail = { error: 'Gmail authorization expired. Please reconnect Gmail from Sources.' };
+        } else if (msg.includes('No OAuth tokens found')) {
+          results.gmail = { error: 'Gmail connection incomplete. Please reconnect Gmail from Sources.' };
         } else {
           results.gmail = { error: msg || 'Gmail sync failed' };
         }
@@ -247,33 +264,47 @@ router.post('/sync', authenticateToken, syncRateLimit, async (req, res) => {
         if (driveCheck.rows.length > 0 && driveCheck.rows[0].status === 'connected') {
           console.log(`[API] Starting Drive sync for user ${userId}`);
           
-          try {
-            results.drive = await ingestDrive(userId);
-            if (results.drive?.error) {
-              console.log(`[API] Drive sync completed with error for user ${userId}: ${results.drive.error}`);
-            } else if (results.drive?.warnings?.length) {
-              console.log(`[API] Drive sync completed with warnings for user ${userId}: ${results.drive.warnings.join(' | ')}`);
-            } else {
-              console.log(`[API] Drive sync completed successfully for user ${userId}`);
-            }
+          // Check if OAuth tokens exist
+          const tokenCheck = await pool.query(
+            'SELECT user_id FROM oauth_tokens WHERE user_id = $1',
+            [userId]
+          );
+          
+          if (tokenCheck.rows.length === 0) {
+            console.error(`[API] No OAuth tokens found for user ${userId}`);
+            results.drive = { error: 'Drive connection incomplete. Please reconnect Drive from Sources.' };
+          } else {
+            try {
+              results.drive = await ingestDrive(userId);
+              if (results.drive?.error) {
+                console.log(`[API] Drive sync completed with error for user ${userId}: ${results.drive.error}`);
+              } else if (results.drive?.warnings?.length) {
+                console.log(`[API] Drive sync completed with warnings for user ${userId}: ${results.drive.warnings.join(' | ')}`);
+              } else {
+                console.log(`[API] Drive sync completed successfully for user ${userId}`);
+              }
 
-            // Only mark "last_synced_at" after a successful ingestion (no error)
-            if (!results.drive?.error) {
-              await pool.query(
-                `UPDATE sources
-                 SET last_synced_at = CURRENT_TIMESTAMP,
-                     updated_at = CURRENT_TIMESTAMP
-                 WHERE user_id = $1 AND source_type = 'drive'`,
-                [userId]
-              );
-            }
-          } catch (ingestionError) {
-            console.error(`[API] Drive ingestion error for user ${userId}:`, ingestionError);
-            const msg = String(ingestionError?.message || '');
-            if (msg.includes('OAUTH_INVALID_GRANT') || msg.includes('invalid_grant')) {
-              results.drive = { error: 'Google Drive authorization expired. Please reconnect Drive from Sources.' };
-            } else {
-              results.drive = { error: msg || 'Drive sync failed' };
+              // Only mark "last_synced_at" after a successful ingestion (no error)
+              if (!results.drive?.error) {
+                await pool.query(
+                  `UPDATE sources
+                   SET last_synced_at = CURRENT_TIMESTAMP,
+                       updated_at = CURRENT_TIMESTAMP
+                   WHERE user_id = $1 AND source_type = 'drive'`,
+                  [userId]
+                );
+              }
+            } catch (ingestionError) {
+              console.error(`[API] Drive ingestion error for user ${userId}:`, ingestionError);
+              console.error(`[API] Error stack:`, ingestionError.stack);
+              const msg = String(ingestionError?.message || '');
+              if (msg.includes('OAUTH_INVALID_GRANT') || msg.includes('invalid_grant')) {
+                results.drive = { error: 'Google Drive authorization expired. Please reconnect Drive from Sources.' };
+              } else if (msg.includes('No OAuth tokens found')) {
+                results.drive = { error: 'Drive connection incomplete. Please reconnect Drive from Sources.' };
+              } else {
+                results.drive = { error: msg || 'Drive sync failed' };
+              }
             }
           }
         } else {
@@ -281,9 +312,12 @@ router.post('/sync', authenticateToken, syncRateLimit, async (req, res) => {
         }
       } catch (error) {
         console.error(`[API] Drive sync error for user ${userId}:`, error);
+        console.error(`[API] Error stack:`, error.stack);
         const msg = String(error?.message || '');
         if (msg.includes('OAUTH_INVALID_GRANT') || msg.includes('invalid_grant')) {
           results.drive = { error: 'Google Drive authorization expired. Please reconnect Drive from Sources.' };
+        } else if (msg.includes('No OAuth tokens found')) {
+          results.drive = { error: 'Drive connection incomplete. Please reconnect Drive from Sources.' };
         } else {
           results.drive = { error: msg || 'Drive sync failed' };
         }
