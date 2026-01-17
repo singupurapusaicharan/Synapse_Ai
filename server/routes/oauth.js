@@ -8,6 +8,40 @@ import { getAuthUrl, getTokensFromCode, storeOAuthTokens } from '../lib/googleOA
 const router = express.Router();
 
 /**
+ * GET /auth/debug
+ * Debug endpoint to show OAuth configuration
+ */
+router.get('/debug', (req, res) => {
+  const protocol = req.protocol || (req.headers['x-forwarded-proto'] || 'http');
+  const host = req.get('host');
+  const detectedRedirectUri = `${protocol}://${host}/auth/google/callback`;
+  const configuredBackendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
+  const configuredRedirectUri = `${configuredBackendUrl}/auth/google/callback`;
+  
+  res.json({
+    message: 'OAuth Configuration Debug Info',
+    environment: process.env.NODE_ENV || 'development',
+    configured: {
+      BACKEND_URL: configuredBackendUrl,
+      REDIRECT_URI: configuredRedirectUri,
+    },
+    detected: {
+      protocol,
+      host,
+      REDIRECT_URI: detectedRedirectUri,
+    },
+    instructions: {
+      step1: 'Go to https://console.cloud.google.com/apis/credentials',
+      step2: 'Click on your OAuth 2.0 Client ID',
+      step3: 'Under "Authorized redirect URIs", add this EXACT URI:',
+      uri_to_add: detectedRedirectUri,
+      step4: 'Click SAVE',
+      step5: 'Try connecting Gmail again',
+    }
+  });
+});
+
+/**
  * GET /auth/google
  * Initiates Google OAuth flow
  * Query params:
@@ -21,7 +55,9 @@ router.get('/google', verifySession, async (req, res) => {
   try {
     console.log(`[OAuth] GET /auth/google - Request received`);
     console.log(`[OAuth] Query params:`, req.query);
-    console.log(`[OAuth] Headers:`, { authorization: req.headers['authorization'] ? 'present' : 'missing', cookie: req.cookies ? 'present' : 'missing' });
+    console.log(`[OAuth] Protocol: ${req.protocol}`);
+    console.log(`[OAuth] Host: ${req.get('host')}`);
+    console.log(`[OAuth] X-Forwarded-Proto: ${req.headers['x-forwarded-proto']}`);
     
     const { sourceType } = req.query;
     const userId = req.user?.userId;
@@ -53,6 +89,8 @@ router.get('/google', verifySession, async (req, res) => {
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=/g, '');
+
+    console.log(`[OAuth] Created state parameter (length: ${state.length})`);
 
     // Get OAuth URL with state
     const authUrl = getAuthUrl(state, req);
