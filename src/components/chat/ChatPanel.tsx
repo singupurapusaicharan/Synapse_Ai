@@ -60,10 +60,10 @@ export function ChatPanel({
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 w-full">
+    <div className="flex-1 flex flex-col min-w-0 w-full min-h-0 h-full overflow-hidden">
       {/* Messages Area */}
       <ScrollArea
-        className="flex-1"
+        className="flex-1 min-h-0"
         viewportRef={viewportRef}
         viewportClassName="smooth-scroll"
         viewportProps={{
@@ -85,17 +85,19 @@ export function ChatPanel({
         />
       </ScrollArea>
 
-      {/* Input */}
-      <MessageInput
-        onSend={(content) => {
-          onSendMessage(content);
-          setDraft('');
-        }}
-        disabled={isLoading || !hasSources}
-        value={draft}
-        onValueChange={setDraft}
-        textareaRef={inputRef}
-      />
+      {/* Input - Fixed at bottom */}
+      <div className="flex-shrink-0 border-t border-border/30 bg-background">
+        <MessageInput
+          onSend={(content) => {
+            onSendMessage(content);
+            setDraft('');
+          }}
+          disabled={isLoading || !hasSources}
+          value={draft}
+          onValueChange={setDraft}
+          textareaRef={inputRef}
+        />
+      </div>
     </div>
   );
 }
@@ -118,7 +120,7 @@ const MessagesList = memo(function MessagesList({
   onNavigateToSources?: () => void;
 }) {
   return (
-    <div className="p-4 lg:p-8 space-y-6 min-h-full max-w-4xl mx-auto">
+    <div className="p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 min-h-full max-w-4xl mx-auto">
       {messages.length === 0 ? (
         hasSources ? (
           <EmptyStateWithSources />

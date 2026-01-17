@@ -488,7 +488,7 @@ export function Dashboard() {
           onNewChat={handleNewChat}
         />
 
-        <div className="flex-1 flex flex-col min-w-0 w-full overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 w-full overflow-hidden min-h-0">
           <ChatPanel
             messages={messages}
             onSendMessage={handleSendMessage}

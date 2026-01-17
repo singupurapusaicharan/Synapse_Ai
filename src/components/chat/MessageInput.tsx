@@ -63,11 +63,11 @@ export function MessageInput({
   };
 
   return (
-    <div className="p-4 lg:p-6 bg-background/40 backdrop-blur-xl border-t border-border/30">
+    <div className="p-3 sm:p-4 lg:p-6 bg-background/40 backdrop-blur-xl">
       <div className="max-w-4xl mx-auto">
         <div
           className={cn(
-            'flex items-end gap-3 p-4 rounded-2xl',
+            'flex items-end gap-2 sm:gap-3 p-3 sm:p-4 rounded-2xl',
             'bg-secondary/40 border border-border/40',
             'focus-within:border-primary/40 focus-within:glow-subtle',
             'transition-all duration-500'
@@ -103,7 +103,7 @@ export function MessageInput({
           </Button>
         </div>
 
-        <p className="text-[11px] text-muted-foreground/60 text-center mt-3 font-medium">
+        <p className="text-[10px] sm:text-[11px] text-muted-foreground/60 text-center mt-2 sm:mt-3 font-medium">
           Press Enter to send · Shift + Enter for new line
         </p>
       </div>
