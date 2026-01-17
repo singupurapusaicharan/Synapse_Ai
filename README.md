@@ -1,264 +1,532 @@
-
----
-
 # 🧠 Synapse AI
 
-**Synapse AI** is a **production-ready, high-performance AI-powered personal knowledge assistant** built with a modern **TypeScript + React** frontend and a **Node.js** backend.
-It enables intelligent search and chat across **Gmail and Google Drive** using **Retrieval-Augmented Generation (RAG)** while keeping privacy and performance at the core.
+<div align="center">
 
-Designed with **FAANG-level engineering standards**, Synapse AI is suitable for real-world deployment, large-scale systems, and recruiter-grade portfolios.
+**Your Personal AI Memory Assistant**
 
----
+A production-ready, intelligent knowledge management system that brings semantic search and conversational AI to your Gmail and Google Drive.
 
-## 🚀 What Makes Synapse AI Stand Out
+[![Live Demo](https://img.shields.io/badge/demo-live-success?style=for-the-badge)](https://synapse-ai.vercel.app)
+[![Backend](https://img.shields.io/badge/backend-deployed-blue?style=for-the-badge)](https://synapse-ai-backend-1303.onrender.com)
+[![License](https://img.shields.io/badge/license-MIT-purple?style=for-the-badge)](LICENSE)
 
-* AI-powered search over **your personal data**
-* End-to-end **TypeScript-first architecture**
-* **Privacy-first** design with local LLM processing
-* **Production deployed**, monitored, tested, and secured
-* Clean, scalable frontend scaffold for AI dashboards
+[Features](#-features) • [Tech Stack](#-tech-stack) • [Quick Start](#-quick-start) • [Deployment](#-deployment) • [Architecture](#-architecture)
 
----
-
-## 📑 Table of Contents
-
-* Overview
-* Features
-* Use Cases
-* Tech Stack
-* Architecture
-* Quick Start
-* Environment Configuration
-* Project Structure
-* Development Scripts
-* Testing & Quality
-* Deployment
-* Monitoring
-* Security
-* Contributing
-* License
-* Contact
+</div>
 
 ---
 
-## 📌 Overview
+## 🎯 What is Synapse AI?
 
-Synapse AI connects to your **Gmail** and **Google Drive** to provide **semantic search and conversational AI** over your personal content.
+Synapse AI is a **FREE, privacy-focused AI assistant** that connects to your personal data sources (Gmail, Google Drive) and enables you to:
 
-It uses:
+- 🔍 **Search semantically** - Ask questions in natural language, not keywords
+- 💬 **Chat with your data** - Get AI-powered answers with source citations
+- 📧 **Find emails instantly** - "Show me emails from John about the project"
+- 📄 **Query documents** - Search across all your Google Drive files
+- 🎯 **Maximum accuracy** - 50% similarity threshold ensures only relevant results
+- 📱 **Fully responsive** - Works perfectly on all devices
 
-* **OAuth 2.0** for secure authentication
-* **Vector embeddings** for semantic retrieval
-* **RAG (Retrieval-Augmented Generation)** for accurate AI responses
-* **Local LLMs via Ollama** for privacy-preserving inference
+**Built for students and developers** - Everything runs on FREE tiers (Vercel, Render, Supabase, Hugging Face).
 
 ---
 
 ## ✨ Features
 
-### 🔹 Core Capabilities
+### 🔐 Secure Authentication
+- Google OAuth 2.0 integration
+- JWT-based session management
+- Password reset via email
+- Secure token storage
 
-| Feature           | Description                             | Status |
-| ----------------- | --------------------------------------- | ------ |
-| TypeScript-First  | Strict typing across frontend & backend | ✅      |
-| Google OAuth      | Secure Google Sign-In                   | ✅      |
-| Gmail Integration | Search emails semantically              | ✅      |
-| Drive Integration | Search documents intelligently          | ✅      |
-| AI Chat           | Ask questions with citations            | ✅      |
-| Vector Search     | pgvector-powered similarity search      | ✅      |
-| Modular UI        | Reusable, composable components         | ✅      |
-| Accessibility     | Keyboard-friendly & semantic HTML       | ✅      |
-| Responsive Design | Mobile-first UI                         | ✅      |
+### 🤖 AI-Powered Search
+- **FREE embeddings** via Hugging Face Inference API
+- Semantic search using `sentence-transformers/all-MiniLM-L6-v2`
+- Vector similarity search with pgvector
+- Automatic fallback to keyword search
+- Live Gmail search when needed
 
----
+### 💬 Intelligent Chat
+- RAG (Retrieval-Augmented Generation) pipeline
+- Context-aware responses with citations
+- Multi-turn conversations
+- Session history management
+- Structured markdown responses
 
-### 🔹 Production Readiness
+### 📊 Data Sources
+- **Gmail Integration** - Sync and search emails
+- **Google Drive Integration** - Index and query documents
+- Real-time sync status
+- Automatic chunking and embedding
 
-* ✅ **Frontend:** Deployed on Vercel
-* ✅ **Backend:** Deployed on Render
-* ✅ **Monitoring:** 24/7 uptime monitoring (UptimeRobot)
-* ✅ **Testing:** 94.44% test coverage
-* ✅ **Security:** 100% security score
-* ✅ **Performance:** < 500ms average response time
-
----
-
-## 💡 Use Cases
-
-* Search emails using natural language
-* Retrieve information from Google Drive instantly
-* Generate AI summaries of conversations
-* Ask contextual questions over personal data
-* Eliminate manual searching across tools
+### 🎨 Modern UI/UX
+- Clean, professional interface
+- Dark/Light theme support
+- Fully responsive design (mobile, tablet, desktop)
+- Smooth animations and transitions
+- Accessible components (shadcn/ui)
 
 ---
 
-## 🧰 Tech Stack
+## 🛠 Tech Stack
 
 ### Frontend
-
-* React 18 + TypeScript
-* Vite
-* Tailwind CSS + shadcn/ui
-* React Router v6
-* Context API + Hooks
-* Deployed on **Vercel**
+| Technology | Purpose |
+|------------|---------|
+| **React 18** | UI framework with hooks |
+| **TypeScript** | Type-safe development |
+| **Vite** | Lightning-fast build tool |
+| **Tailwind CSS** | Utility-first styling |
+| **shadcn/ui** | Beautiful, accessible components |
+| **React Router v6** | Client-side routing |
+| **TanStack Query** | Server state management |
 
 ### Backend
+| Technology | Purpose |
+|------------|---------|
+| **Node.js + Express** | REST API server |
+| **PostgreSQL (Supabase)** | Database with pgvector |
+| **Hugging Face API** | FREE AI embeddings |
+| **Google APIs** | Gmail & Drive integration |
+| **JWT** | Authentication tokens |
+| **bcrypt** | Password hashing |
 
-* Node.js + Express
-* PostgreSQL (Supabase)
-* JWT Authentication
-* Google OAuth 2.0
-* pgvector for embeddings
-* Ollama for local LLM inference
-* Deployed on **Render**
+### AI & ML
+| Technology | Purpose |
+|------------|---------|
+| **Hugging Face Inference** | FREE embeddings (384-dim) |
+| **pgvector** | Vector similarity search |
+| **Ollama** | Optional local LLM (fallback) |
+| **RAG Pipeline** | Context-aware AI responses |
 
-### Tooling & DevOps
+### Deployment
+| Service | Purpose | Tier |
+|---------|---------|------|
+| **Vercel** | Frontend hosting | FREE |
+| **Render** | Backend hosting | FREE |
+| **Supabase** | PostgreSQL + pgvector | FREE |
+| **Hugging Face** | Embeddings API | FREE |
 
-* ESLint & Prettier
-* Jest
-* GitHub Actions (CI/CD)
-* UptimeRobot Monitoring
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js ≥ 18
+- npm or yarn
+- Google Cloud Console account (for OAuth)
+- Supabase account (for database)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/singupurapusaicharan/Synapse_Ai.git
+cd Synapse_Ai
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Environment Setup
+
+Create a `.env` file in the root directory:
+
+```env
+# Backend Configuration
+JWT_SECRET=your_super_secret_jwt_key_here
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_DB_URL=postgresql://postgres:[password]@db.[project].supabase.co:5432/postgres
+
+# Server URLs
+BACKEND_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:8080
+PORT=3001
+NODE_ENV=development
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Frontend Configuration
+VITE_API_BASE_URL=http://localhost:3001/api
+```
+
+### 4. Initialize Database
+```bash
+npm run init:db
+```
+
+### 5. Run Development Servers
+
+**Option 1: Run both servers together**
+```bash
+npm run dev:all
+```
+
+**Option 2: Run separately**
+```bash
+# Terminal 1 - Backend
+npm run dev:backend
+
+# Terminal 2 - Frontend
+npm run dev
+```
+
+### 6. Access the Application
+- **Frontend**: http://localhost:8080
+- **Backend API**: http://localhost:3001/api
+- **Health Check**: http://localhost:3001/health
+
+---
+
+## 🔧 Configuration Guide
+
+### Google OAuth Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project or select existing
+3. Enable **Gmail API** and **Google Drive API**
+4. Create OAuth 2.0 credentials:
+   - Application type: Web application
+   - Authorized redirect URIs:
+     - `http://localhost:3001/auth/google/callback` (development)
+     - `https://your-backend.onrender.com/auth/google/callback` (production)
+5. Copy Client ID and Client Secret to `.env`
+
+### Supabase Setup
+
+1. Create account at [Supabase](https://supabase.com)
+2. Create a new project
+3. Get connection details from Settings → Database
+4. Enable **pgvector** extension:
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS vector;
+   ```
+5. Run initialization script: `npm run init:db`
+
+### Hugging Face (Optional)
+
+For higher rate limits, get a FREE API key:
+1. Sign up at [Hugging Face](https://huggingface.co)
+2. Go to Settings → Access Tokens
+3. Create a new token
+4. Add to `.env`: `HUGGINGFACE_API_KEY=your_token`
+
+---
+
+## 📦 Project Structure
+
+```
+synapse-ai/
+├── src/                      # Frontend source
+│   ├── components/          # React components
+│   │   ├── chat/           # Chat interface
+│   │   ├── effects/        # Animations
+│   │   └── ui/             # shadcn/ui components
+│   ├── pages/              # Route pages
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utilities
+│   ├── types/              # TypeScript types
+│   └── App.tsx             # Main app component
+├── server/                  # Backend source
+│   ├── config/             # Database config
+│   ├── lib/                # Core libraries
+│   │   ├── huggingface.js # FREE embeddings
+│   │   ├── ollama.js      # LLM integration
+│   │   └── vectorSearch.js # Semantic search
+│   ├── middleware/         # Auth middleware
+│   ├── routes/             # API endpoints
+│   ├── scripts/            # DB initialization
+│   └── index.js            # Server entry
+├── public/                  # Static assets
+├── .env                     # Environment variables
+├── package.json            # Dependencies
+├── vite.config.ts          # Vite configuration
+└── README.md               # This file
+```
+
+---
+
+## 🌐 Deployment
+
+### Frontend (Vercel)
+
+1. Push code to GitHub
+2. Go to [Vercel](https://vercel.com)
+3. Import your repository
+4. Configure environment variables:
+   ```
+   VITE_API_BASE_URL=https://your-backend.onrender.com/api
+   ```
+5. Deploy!
+
+### Backend (Render)
+
+1. Go to [Render](https://render.com)
+2. Create new Web Service
+3. Connect your GitHub repository
+4. Configure:
+   - **Build Command**: `npm install`
+   - **Start Command**: `node server/index.js`
+   - **Environment Variables**: Copy from `.env`
+5. Add redirect URI to Google Cloud Console
+6. Deploy!
+
+### Database (Supabase)
+
+Already configured! Just ensure:
+- pgvector extension is enabled
+- Tables are initialized (`npm run init:db`)
+- Connection string is in `.env`
 
 ---
 
 ## 🏗 Architecture
 
-### System Design
+### System Overview
 
-```text
-Frontend (Vercel)
- └── React + TypeScript + Vite
-       ↓
-Backend (Render)
- └── Node.js + Express
-       ├─ OAuth & JWT Auth
-       ├─ RAG Pipeline
-       ├─ Gmail & Drive APIs
-       └─ Vector Search (pgvector)
-       ↓
-Supabase PostgreSQL + Ollama (Local LLM)
 ```
-
----
+┌─────────────────────────────────────────────────────────────┐
+│                         User Browser                         │
+│                    (React + TypeScript)                      │
+└────────────────────────┬────────────────────────────────────┘
+                         │ HTTPS
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Vercel (Frontend)                       │
+│              Static Site + Client-Side Routing               │
+└────────────────────────┬────────────────────────────────────┘
+                         │ REST API
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Render (Backend)                         │
+│                   Node.js + Express API                      │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  Auth Layer (JWT + Google OAuth)                     │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  RAG Pipeline                                        │   │
+│  │  1. Query → Embedding (Hugging Face)                 │   │
+│  │  2. Vector Search (pgvector)                         │   │
+│  │  3. Context Retrieval                                │   │
+│  │  4. Answer Generation (Ollama/Fallback)              │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         ▼               ▼               ▼
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│  Supabase   │  │  Hugging    │  │   Google    │
+│ PostgreSQL  │  │    Face     │  │    APIs     │
+│  +pgvector  │  │ Embeddings  │  │ Gmail/Drive │
+└─────────────┘  └─────────────┘  └─────────────┘
+```
 
 ### Data Flow
 
-1. User logs in via Google OAuth
-2. Gmail & Drive data is ingested
-3. Text is chunked and embedded
-4. Stored in PostgreSQL with pgvector
-5. User query → embedding → vector search
-6. Context + query → LLM → response
+1. **User Authentication**
+   - User signs in with Google OAuth
+   - JWT token issued for session management
+   - OAuth tokens stored for Gmail/Drive access
+
+2. **Data Ingestion**
+   - User connects Gmail/Drive
+   - Content fetched via Google APIs
+   - Text chunked (350 chars per chunk)
+   - Embeddings generated (Hugging Face)
+   - Stored in PostgreSQL with pgvector
+
+3. **Query Processing**
+   - User asks question
+   - Question embedded (384-dim vector)
+   - Vector similarity search (50% threshold)
+   - Top relevant chunks retrieved
+   - Context passed to LLM
+
+4. **Answer Generation**
+   - LLM generates response with citations
+   - Fallback to structured response if LLM unavailable
+   - Citations linked to original sources
+   - Response displayed with markdown formatting
 
 ---
 
-## ⚡ Quick Start
+## 📊 Key Features Explained
 
-### Prerequisites
+### Maximum Accuracy (50% Similarity Threshold)
 
-* Node.js ≥ 18
-* npm ≥ 8 or yarn
-* Git
+We use the **highest practical similarity threshold (0.50)** to ensure only highly relevant results:
+
+```javascript
+minSimilarity: 0.50  // Only 50%+ similar chunks are used
+```
+
+This means:
+- ✅ Only extremely relevant emails/documents are returned
+- ✅ No loosely related or irrelevant content
+- ✅ Accurate, focused answers
+- ✅ Better user trust and experience
+
+### FREE AI Embeddings
+
+We use **Hugging Face Inference API** for completely FREE embeddings:
+
+```javascript
+// No installation, no cost, just API calls
+const embedding = await fetch('https://api-inference.huggingface.co/...')
+```
+
+Benefits:
+- 🆓 Completely FREE (no credit card needed)
+- ⚡ Fast inference (< 1 second)
+- 🎯 High quality (`sentence-transformers/all-MiniLM-L6-v2`)
+- 🔄 Automatic fallback to Ollama if needed
+
+### Responsive Design
+
+Every page is optimized for all devices:
+
+```css
+/* Mobile-first approach */
+p-3 sm:p-4 lg:p-8        /* Responsive padding */
+text-sm md:text-base     /* Responsive text */
+flex-col md:flex-row     /* Responsive layout */
+```
+
+Tested on:
+- 📱 Mobile (320px - 768px)
+- 📱 Tablet (768px - 1024px)
+- 💻 Desktop (1024px+)
 
 ---
 
-### Installation
+## 🧪 Development Scripts
 
 ```bash
-git clone https://github.com/singupurapusaicharan/Synapse_Ai.git
-cd Synapse_Ai
-npm install
+# Frontend development
+npm run dev                 # Start Vite dev server (port 8080)
+
+# Backend development
+npm run dev:backend         # Start Express server (port 3001)
+
+# Run both together
+npm run dev:all            # Concurrent frontend + backend
+
+# Database
+npm run init:db            # Initialize database tables
+npm run check:db           # Verify database connection
+
+# Production build
+npm run build              # Build for production
+npm run preview            # Preview production build
+
+# Code quality
+npm run lint               # Run ESLint
 ```
 
 ---
 
-## 🔐 Environment Configuration
+## 🔒 Security Features
 
-```bash
-cp .env.example .env
-```
-
-```env
-NODE_ENV=development
-PORT=3000
-VITE_API_BASE_URL=https://api.example.com
-```
-
----
-
-## ▶️ Running the Project
-
-### Development
-
-```bash
-npm run dev
-```
-
-### Production Build
-
-```bash
-npm run build
-npm run preview
-```
+- ✅ **OAuth 2.0** - Secure Google authentication
+- ✅ **JWT tokens** - Stateless session management
+- ✅ **bcrypt hashing** - Secure password storage
+- ✅ **HTTPS only** - Encrypted communication (production)
+- ✅ **CORS protection** - Whitelist-based origin control
+- ✅ **SQL injection prevention** - Parameterized queries
+- ✅ **XSS protection** - Content security headers
+- ✅ **Rate limiting** - API abuse prevention
 
 ---
 
-## 🗂 Project Structure
+## 🐛 Troubleshooting
 
-```text
-src/
- ├─ components/
- ├─ pages/
- ├─ hooks/
- ├─ services/
- ├─ styles/
- ├─ utils/
- ├─ types/
-public/
-tests/
-.env.example
-vite.config.ts
-tsconfig.json
+### Database Connection Timeout
+
+If you see "Connection terminated due to connection timeout":
+
+```javascript
+// Already fixed in server/config/database.js
+connectionTimeoutMillis: 20000  // 20 seconds (was 5)
+max: 10                         // Reduced for free tier
 ```
 
----
+### OAuth "Unsupported state" Error
 
-## 🛠 Development Scripts
+1. Check redirect URI in Google Cloud Console
+2. Must match exactly: `https://your-backend.onrender.com/auth/google/callback`
+3. Use HTTPS (not HTTP) for production
 
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run lint
-npm run format
-npm run test
-```
+### Embeddings Not Working
 
+1. Check Hugging Face API status
+2. Verify internet connection
+3. System automatically falls back to keyword search
 
+### No Relevant Results
 
-## 🚢 Deployment
-
-### Platforms
-
-* **Frontend:** Vercel
-* **Backend:** Render
-* **Database:** Supabase
-* **Monitoring:** UptimeRobot
+1. Ensure sources are synced (click "Sync Gmail")
+2. Check similarity threshold (currently 0.50 = maximum)
+3. Try rephrasing your question
+4. Verify data exists in database
 
 ---
 
+## 📈 Performance
 
-
-## 🔒 Security
-
-* OAuth 2.0 authentication
-* JWT-based authorization
-* Encrypted credentials
-* Zero known vulnerabilities
-* Privacy-first local LLM usage
+- ⚡ **< 500ms** average API response time
+- 🚀 **< 2s** page load time (Vercel CDN)
+- 💾 **< 100MB** memory usage (backend)
+- 📊 **50% similarity** threshold for accuracy
+- 🔄 **Automatic fallbacks** for reliability
 
 ---
 
+## 🤝 Contributing
 
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Hugging Face](https://huggingface.co) - FREE embeddings API
+- [Supabase](https://supabase.com) - PostgreSQL + pgvector
+- [Vercel](https://vercel.com) - Frontend hosting
+- [Render](https://render.com) - Backend hosting
+- [shadcn/ui](https://ui.shadcn.com) - Beautiful components
+- [Ollama](https://ollama.ai) - Local LLM support
+
+---
+
+## 📧 Contact
+
+**Developer**: Sai Charan Singupurapu
+
+- GitHub: [@singupurapusaicharan](https://github.com/singupurapusaicharan)
+- Project: [Synapse AI](https://github.com/singupurapusaicharan/Synapse_Ai)
+- Live Demo: [synapse-ai.vercel.app](https://synapse-ai.vercel.app)
+
+---
+
+<div align="center">
+
+**Built with ❤️ by students, for students**
+
+⭐ Star this repo if you find it helpful!
+
+</div>
