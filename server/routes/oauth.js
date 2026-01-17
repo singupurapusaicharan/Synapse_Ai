@@ -135,8 +135,30 @@ router.get('/google/callback', async (req, res) => {
 
     // Encrypt and store tokens in oauth_tokens table
     console.log(`[OAuth] Storing encrypted tokens in oauth_tokens table...`);
-    await storeOAuthTokens(userId, accessToken, refreshToken, expiryDate, scope);
-    console.log(`[OAuth] Tokens stored successfully`);
+    console.log(`[OAuth] User ID: ${userId}`);
+    console.log(`[OAuth] Has access token: ${!!accessToken}`);
+    console.log(`[OAuth] Has refresh token: ${!!refreshToken}`);
+    console.log(`[OAuth] Expiry date: ${new Date(expiryDate).toISOString()}`);
+    console.log(`[OAuth] Scope: ${scope}`);
+    
+    try {
+      await storeOAuthTokens(userId, accessToken, refreshToken, expiryDate, scope);
+      console.log(`[OAuth] Tokens stored successfully in oauth_tokens table`);
+      
+      // Verify tokens were stored
+      const verifyTokens = await pool.query(
+        'SELECT user_id, expires_at FROM oauth_tokens WHERE user_id = $1',
+        [userId]
+      );
+      if (verifyTokens.rows.length > 0) {
+        console.log(`[OAuth] ✓ Verified: Tokens exist in database for user ${userId}`);
+      } else {
+        console.error(`[OAuth] ✗ ERROR: Tokens NOT found in database after storage!`);
+      }
+    } catch (tokenError) {
+      console.error(`[OAuth] ERROR storing tokens:`, tokenError);
+      throw tokenError;
+    }
 
     // Update sources table: set status='connected' for the sourceType
     const sourceName = sourceType === 'gmail' ? 'Gmail' : 'Google Drive';

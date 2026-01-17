@@ -110,6 +110,8 @@ export async function storeOAuthTokens(userId, accessToken, refreshToken, expiry
  * @returns {Promise<string>} Access token
  */
 export async function getAccessToken(userId) {
+  console.log(`[OAuth] Getting access token for user ${userId}`);
+  
   // Get encrypted tokens from oauth_tokens table
   const result = await pool.query(
     'SELECT access_token_enc, refresh_token_enc, expires_at FROM oauth_tokens WHERE user_id = $1',
@@ -117,24 +119,32 @@ export async function getAccessToken(userId) {
   );
 
   if (result.rows.length === 0) {
+    console.error(`[OAuth] No OAuth tokens found in database for user ${userId}`);
     throw new Error('No OAuth tokens found for user');
   }
 
+  console.log(`[OAuth] Found tokens in database for user ${userId}`);
   const row = result.rows[0];
   
   // Decrypt access token
   let accessToken = decrypt(row.access_token_enc);
+  console.log(`[OAuth] Decrypted access token successfully`);
   
   // Check if token needs refresh (refresh 1 minute before expiry)
   const expiresAt = new Date(row.expires_at);
   const now = new Date();
   const timeUntilExpiry = expiresAt.getTime() - now.getTime();
   
+  console.log(`[OAuth] Token expires at: ${expiresAt.toISOString()}`);
+  console.log(`[OAuth] Time until expiry: ${Math.round(timeUntilExpiry / 1000)} seconds`);
+  
   if (timeUntilExpiry <= 60000) { // 1 minute
+    console.log(`[OAuth] Token expired or expiring soon, refreshing...`);
     // Refresh token
     const refreshToken = decrypt(row.refresh_token_enc);
     
     if (!refreshToken) {
+      console.error(`[OAuth] No refresh token available for user ${userId}`);
       throw new Error('Refresh token not available');
     }
 
@@ -145,11 +155,13 @@ export async function getAccessToken(userId) {
     let credentials;
     try {
       ({ credentials } = await oauth2Client.refreshAccessToken());
+      console.log(`[OAuth] Successfully refreshed access token`);
     } catch (err) {
       const msg = String(err?.message || '');
       const apiError = err?.response?.data?.error;
       const isInvalidGrant = msg.includes('invalid_grant') || apiError === 'invalid_grant';
       if (isInvalidGrant) {
+        console.error(`[OAuth] Refresh token invalid/revoked for user ${userId}`);
         // Token was revoked/expired. Clean up so UI can prompt user to reconnect.
         try {
           await pool.query('DELETE FROM oauth_tokens WHERE user_id = $1', [userId]);
@@ -160,6 +172,7 @@ export async function getAccessToken(userId) {
              WHERE user_id = $1 AND source_type IN ('gmail', 'drive')`,
             [userId]
           );
+          console.log(`[OAuth] Cleaned up invalid tokens for user ${userId}`);
         } catch (cleanupErr) {
           // Best-effort cleanup; still throw the reconnect signal.
           console.warn('[OAuth] Failed to cleanup tokens after invalid_grant:', cleanupErr?.message || cleanupErr);
@@ -168,6 +181,7 @@ export async function getAccessToken(userId) {
         e.code = 'OAUTH_INVALID_GRANT';
         throw e;
       }
+      console.error(`[OAuth] Error refreshing token:`, err);
       throw err;
     }
     
@@ -187,9 +201,11 @@ export async function getAccessToken(userId) {
       [accessTokenEnc, new Date(newExpiryDate), userId]
     );
 
+    console.log(`[OAuth] Updated tokens in database`);
     return newAccessToken;
   }
 
+  console.log(`[OAuth] Using existing access token (still valid)`);
   return accessToken;
 }
 
