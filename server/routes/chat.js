@@ -465,12 +465,12 @@ router.post('/message', authenticateToken, async (req, res) => {
         
         let matchedChunks;
         try {
-          // Enhanced search with better parameters for email search
+          // Enhanced search with MAXIMUM relevance threshold for accurate answers
           const searchParams = {
             userId: userId.toString(),
             queryEmbedding,
             k: RAG_SEARCH_K, // Pull candidates; tuned for speed via env
-            minSimilarity: 0.35, // INCREASED from 0.22 - only return highly relevant results
+            minSimilarity: 0.50, // MAXIMUM threshold - only extremely relevant results
             boostRecent: true
           };
 
@@ -484,7 +484,7 @@ router.post('/message', authenticateToken, async (req, res) => {
               ...searchParams,
               k: 10,
               boostName: personName,
-              minSimilarity: 0.2, // Even more lenient for direct name matches
+              minSimilarity: 0.45, // Slightly lower for name matches but still very high
               sourceTypes: ['gmail'],
               metadataFilters: [
                 { key: 'fromName', value: personName, operator: 'ilike' }
@@ -521,10 +521,10 @@ router.post('/message', authenticateToken, async (req, res) => {
           matchedChunks = [];
         }
 
-        // Filter out very short or low-similarity chunks to reduce noisy answers
+        // Filter out anything below maximum relevance threshold
         matchedChunks = matchedChunks.filter(chunk => {
           const textOk = chunk.chunk_text && chunk.chunk_text.trim().length >= 40;
-          const similarityOk = typeof chunk.similarity === 'number' ? chunk.similarity >= 0.35 : true; // INCREASED from 0.22
+          const similarityOk = typeof chunk.similarity === 'number' ? chunk.similarity >= 0.50 : true; // MAXIMUM threshold
           return textOk && similarityOk;
         });
 
