@@ -30,10 +30,9 @@ if (SUPABASE_DB_URL) {
     ssl: {
       rejectUnauthorized: false // Supabase requires SSL
     },
-    max: 20,
-    idleTimeoutMillis: 30000, // 30 seconds - clients removed after this idle time
-    connectionTimeoutMillis: 5000,
-    // Suppress pool warnings for normal client removal
+    max: 10, // Reduced from 20 for free tier
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 20000, // Increased from 5000 to 20000 (20 seconds)
     allowExitOnIdle: false,
   });
   console.log('✅ Using Supabase database connection');
@@ -57,10 +56,9 @@ if (SUPABASE_DB_URL) {
       ssl: {
         rejectUnauthorized: false
       },
-      max: 20,
-      idleTimeoutMillis: 30000, // 30 seconds - clients removed after this idle time
-      connectionTimeoutMillis: 5000,
-      // Suppress pool warnings for normal client removal
+      max: 10, // Reduced from 20 for free tier
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 20000, // Increased from 5000 to 20000 (20 seconds)
       allowExitOnIdle: false,
     });
     console.log('✅ Using Supabase database connection (constructed)');
@@ -89,10 +87,9 @@ if (!pool) {
     database: DB_NAME,
     user: DB_USER,
     password: DB_PASSWORD,
-    max: 20,
-    idleTimeoutMillis: 30000, // 30 seconds - clients removed after this idle time
-    connectionTimeoutMillis: 5000,
-    // Suppress pool warnings for normal client removal
+    max: 10, // Reduced from 20 for free tier
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 20000, // Increased from 5000 to 20000 (20 seconds)
     allowExitOnIdle: false,
   });
 }
