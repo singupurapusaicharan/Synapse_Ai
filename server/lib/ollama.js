@@ -15,9 +15,9 @@ function normalizeModelName(name) {
 
 const CHAT_MODEL = normalizeModelName(process.env.OLLAMA_CHAT_MODEL || 'phi');
 const CHAT_FALLBACK_MODEL = normalizeModelName(process.env.OLLAMA_CHAT_FALLBACK_MODEL || 'phi');
-const EMBEDDING_TIMEOUT = 15000; // 15 seconds
+const EMBEDDING_TIMEOUT = 5000; // 5 seconds (reduced for faster failure)
 const GENERATE_TIMEOUT = 45000; // 45 seconds (increased for better reliability)
-const HEALTH_CHECK_TIMEOUT = 5000; // 5 seconds
+const HEALTH_CHECK_TIMEOUT = 2000; // 2 seconds (reduced for faster failure)
 
 // Speed knobs (can be tuned via env)
 const CHAT_MAX_PROMPT_CHARS = parseInt(process.env.OLLAMA_MAX_PROMPT_CHARS || '2200', 10);
@@ -63,11 +63,11 @@ const HEALTH_CHECK_CACHE_MS = 60000; // Cache health check for 1 minute
 /**
  * Try to connect to a specific Ollama URL with retry logic
  * @param {string} baseUrl - Base URL to try
- * @param {number} retries - Number of retries (default: 3)
- * @param {number} backoffMs - Backoff delay in ms (default: 500)
+ * @param {number} retries - Number of retries (default: 1, reduced for faster failure)
+ * @param {number} backoffMs - Backoff delay in ms (default: 200)
  * @returns {Promise<{ok: boolean, models?: string[], error?: string}>}
  */
-async function tryConnect(baseUrl, retries = 3, backoffMs = 500) {
+async function tryConnect(baseUrl, retries = 1, backoffMs = 200) {
   const url = `${baseUrl}/api/tags`;
   let lastError = null;
 

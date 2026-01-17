@@ -163,8 +163,14 @@ router.post('/sync', authenticateToken, syncRateLimit, async (req, res) => {
   const { sourceType } = req.body;
   console.log(`[API] POST /api/sources/sync - user_id: ${userId}, sourceType: ${sourceType}`);
   
+  // Set a timeout for the entire sync operation (2 minutes)
+  const syncTimeout = setTimeout(() => {
+    console.error(`[API] Sync timeout for user ${userId}`);
+  }, 120000);
+  
   try {
     if (!sourceType || (sourceType !== 'gmail' && sourceType !== 'drive' && sourceType !== 'all')) {
+      clearTimeout(syncTimeout);
       return res.status(400).json({ error: 'sourceType must be "gmail", "drive", or "all"' });
     }
 
@@ -330,12 +336,14 @@ router.post('/sync', authenticateToken, syncRateLimit, async (req, res) => {
     // Log the full results for debugging
     console.log(`[API] Sync results for user ${userId}:`, JSON.stringify(results, null, 2));
 
+    clearTimeout(syncTimeout);
     res.json({
       message: hasErrors ? 'Sync completed with errors' : 'Sync completed',
       results,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    clearTimeout(syncTimeout);
     console.error('Sync error:', error);
     res.status(500).json({ error: 'Sync failed', details: error.message });
   }
