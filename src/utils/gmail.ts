@@ -39,13 +39,15 @@ export function buildGmailInboxUrl(accountEmail?: string | null, accountIndex?: 
 
 /**
  * Gmail deep links that work universally on ALL devices (mobile, desktop, web):
- * - Format: `https://mail.google.com/mail/u/0/#inbox/{messageId}`
  * 
- * Using /u/0/ is the most reliable approach because:
- * 1. Gmail automatically redirects to the correct account if user is signed in
- * 2. Works consistently on mobile apps, desktop browsers, and web
- * 3. More reliable than ?authuser= which can fail on mobile devices
- * 4. Simpler than trying to guess account index
+ * Uses the most reliable Gmail URL format that works across all platforms:
+ * - Format: `https://mail.google.com/mail/u/0/#all/{messageId}`
+ * 
+ * Using #all/ instead of #inbox/ because:
+ * 1. #all/ searches across ALL folders (inbox, sent, archive, etc.)
+ * 2. More reliable for finding the specific message
+ * 3. Works on mobile browsers and desktop
+ * 4. Gmail app on mobile will intercept and open correctly
  * 
  * Priority: messageId > threadId (message is more specific)
  */
@@ -56,13 +58,13 @@ export function buildGmailDeepLinkUrl(input: GmailDeepLinkInput): string | null 
   const safeMessageId = messageId && isSafeGmailId(messageId) ? messageId : null;
   const safeThreadId = threadId && isSafeGmailId(threadId) ? threadId : null;
 
-  // Use universal format with /u/0/ - works on all devices
+  // Use #all/ to search across all folders - more reliable on mobile
   if (safeMessageId) {
-    return `https://mail.google.com/mail/u/0/#inbox/${safeMessageId}`;
+    return `https://mail.google.com/mail/u/0/#all/${safeMessageId}`;
   }
 
   if (safeThreadId) {
-    return `https://mail.google.com/mail/u/0/#inbox/${safeThreadId}`;
+    return `https://mail.google.com/mail/u/0/#all/${safeThreadId}`;
   }
 
   return null;

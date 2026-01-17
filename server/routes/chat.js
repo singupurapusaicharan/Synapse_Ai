@@ -760,7 +760,7 @@ Please provide a detailed answer based on the context above.`;
             let threadId = null;
             let ownerEmail = null;
           if (chunk.source_type === 'gmail') {
-            // Use Gmail Message ID format: #inbox/<MESSAGE_ID>
+            // Use Gmail Message ID format: #all/<MESSAGE_ID>
             // MESSAGE_ID comes from Gmail API (message.id) stored in source_item_id
             messageId = chunk.source_item_id || metadata.gmailMessageId || metadata.messageId || null;
             threadId = metadata.threadId || metadata.thread_id || null;
@@ -771,18 +771,19 @@ Please provide a detailed answer based on the context above.`;
               null;
             
             // Gmail universal deep link format that works on ALL devices (mobile, desktop, web):
-            // https://mail.google.com/mail/u/0/#inbox/{messageId}
+            // https://mail.google.com/mail/u/0/#all/{messageId}
             // 
-            // Using /u/0/ works universally because:
+            // Using /u/0/ with #all/ works universally because:
             // 1. Gmail automatically redirects to the correct account if user is signed in
-            // 2. Works on mobile apps, desktop, and web
-            // 3. More reliable than ?authuser= which can fail on mobile
+            // 2. #all/ searches across ALL folders (inbox, sent, archive, etc.) - more reliable
+            // 3. Works on mobile browsers and apps
+            // 4. Works on desktop browsers
             //
             // Priority: messageId > threadId (message is more specific)
             if (messageId) {
-              deepLink = `https://mail.google.com/mail/u/0/#inbox/${messageId}`;
+              deepLink = `https://mail.google.com/mail/u/0/#all/${messageId}`;
             } else if (threadId) {
-              deepLink = `https://mail.google.com/mail/u/0/#inbox/${threadId}`;
+              deepLink = `https://mail.google.com/mail/u/0/#all/${threadId}`;
             } else {
               deepLink = null;
             }
