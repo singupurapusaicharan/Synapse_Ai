@@ -44,6 +44,44 @@ router.get('/debug', (req, res) => {
 });
 
 /**
+ * GET /auth/test-tokens
+ * Test endpoint to check if OAuth tokens exist for a user
+ */
+router.get('/test-tokens', verifySession, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    // Check if tokens exist
+    const tokenCheck = await pool.query(
+      'SELECT user_id, expires_at, scope FROM oauth_tokens WHERE user_id = $1',
+      [userId]
+    );
+
+    // Check source status
+    const sourceCheck = await pool.query(
+      'SELECT source_type, status FROM sources WHERE user_id = $1 AND source_type IN ($2, $3)',
+      [userId, 'gmail', 'drive']
+    );
+
+    res.json({
+      userId,
+      hasTokens: tokenCheck.rows.length > 0,
+      tokenInfo: tokenCheck.rows.length > 0 ? {
+        expiresAt: tokenCheck.rows[0].expires_at,
+        scope: tokenCheck.rows[0].scope,
+      } : null,
+      sources: sourceCheck.rows,
+    });
+  } catch (error) {
+    console.error('[Auth Test] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * GET /auth/google
  * Initiates Google OAuth flow
  * Query params:

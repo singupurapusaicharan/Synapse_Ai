@@ -327,6 +327,9 @@ router.post('/sync', authenticateToken, syncRateLimit, async (req, res) => {
     // Check if any sync had errors
     const hasErrors = Object.values(results).some(result => result && result.error);
 
+    // Log the full results for debugging
+    console.log(`[API] Sync results for user ${userId}:`, JSON.stringify(results, null, 2));
+
     res.json({
       message: hasErrors ? 'Sync completed with errors' : 'Sync completed',
       results,
