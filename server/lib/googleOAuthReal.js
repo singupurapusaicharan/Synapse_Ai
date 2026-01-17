@@ -87,14 +87,9 @@ export function getAuthUrl(state = '', req = null) {
   return client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
-    prompt: 'consent', // Force consent to get refresh token
-    state: state, // Include state for tracking
-    include_granted_scopes: true, // Incremental authorization
-  });
-}
-    prompt: 'consent', // Force consent to get refresh token
-    state: state, // Include state for tracking
-    include_granted_scopes: true, // Incremental authorization
+    prompt: 'consent',
+    state: state,
+    include_granted_scopes: true,
   });
 }
 
