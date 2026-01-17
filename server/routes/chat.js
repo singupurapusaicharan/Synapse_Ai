@@ -813,8 +813,9 @@ Please provide a detailed answer based on the context above.`;
             }
             
             const citation = {
+              id: `${chunk.source_type}-${chunk.source_item_id || citationNum}`, // Frontend expects 'id'
               number: citationNum,
-              sourceType: chunk.source_type,
+              source: chunk.source_type, // Frontend expects 'source', not 'sourceType'
               title: title,
               url: deepLink,
               // Back-compat field (existing clients)
