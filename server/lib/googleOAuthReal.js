@@ -7,11 +7,18 @@ import { encrypt, decrypt } from './encryption.js';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
-const REDIRECT_URI = `${BACKEND_URL}/auth/google/callback`;
+
+// Auto-detect redirect URI based on environment
+// In production, BACKEND_URL should be set to your Render URL
+// If not set, we'll try to detect it from the request
+let REDIRECT_URI = `${BACKEND_URL}/auth/google/callback`;
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
   console.warn('⚠️  Google OAuth credentials not set. Gmail/Drive integration will not work.');
 }
+
+console.log(`[OAuth Init] BACKEND_URL: ${BACKEND_URL}`);
+console.log(`[OAuth Init] REDIRECT_URI: ${REDIRECT_URI}`);
 
 // OAuth2 client
 const oauth2Client = new google.auth.OAuth2(
@@ -19,6 +26,31 @@ const oauth2Client = new google.auth.OAuth2(
   GOOGLE_CLIENT_SECRET,
   REDIRECT_URI
 );
+
+/**
+ * Get the correct redirect URI based on the request
+ * This helps handle cases where BACKEND_URL is not properly configured
+ */
+function getRedirectUri(req) {
+  // If BACKEND_URL is explicitly set and not localhost in production, use it
+  if (process.env.BACKEND_URL && !process.env.BACKEND_URL.includes('localhost') && process.env.NODE_ENV === 'production') {
+    return `${process.env.BACKEND_URL}/auth/google/callback`;
+  }
+  
+  // Otherwise, try to detect from request
+  if (req) {
+    const protocol = req.protocol || (req.headers['x-forwarded-proto'] || 'http');
+    const host = req.get('host');
+    if (host) {
+      const detectedUrl = `${protocol}://${host}/auth/google/callback`;
+      console.log(`[OAuth] Auto-detected redirect URI: ${detectedUrl}`);
+      return detectedUrl;
+    }
+  }
+  
+  // Fallback to configured REDIRECT_URI
+  return REDIRECT_URI;
+}
 
 // Scopes for Gmail and Drive (read-only)
 const SCOPES = [
@@ -31,21 +63,35 @@ const SCOPES = [
 /**
  * Get Google OAuth authorization URL
  * @param {string} state - State parameter (for tracking user/sourceType)
+ * @param {object} req - Express request object (optional, for auto-detecting redirect URI)
  * @returns {string} Authorization URL
  */
-export function getAuthUrl(state = '') {
+export function getAuthUrl(state = '', req = null) {
   if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
     throw new Error('Google OAuth credentials not configured');
   }
 
-  console.log(`[OAuth] Using redirect URI: ${REDIRECT_URI}`);
+  const redirectUri = getRedirectUri(req);
+  
+  // Create a new OAuth2 client with the correct redirect URI
+  const client = new google.auth.OAuth2(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    redirectUri
+  );
+
+  console.log(`[OAuth] Using redirect URI: ${redirectUri}`);
   console.log(`[OAuth] BACKEND_URL: ${BACKEND_URL}`);
-  console.log(`[OAuth] Make sure this EXACT URI is added in Google Cloud Console`);
   console.log(`[OAuth] State parameter length: ${state.length}`);
 
-  return oauth2Client.generateAuthUrl({
+  return client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
+    prompt: 'consent', // Force consent to get refresh token
+    state: state, // Include state for tracking
+    include_granted_scopes: true, // Incremental authorization
+  });
+}
     prompt: 'consent', // Force consent to get refresh token
     state: state, // Include state for tracking
     include_granted_scopes: true, // Incremental authorization

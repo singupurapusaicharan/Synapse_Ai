@@ -40,15 +40,22 @@ router.get('/google', verifySession, async (req, res) => {
     }
 
     // Create state parameter with userId and sourceType
-    // Use Base64 encoding instead of JSON.stringify + encodeURIComponent for better compatibility
+    // Use a simple, URL-safe format to avoid "Unsupported state" errors
     const stateObj = {
-      userId: userId,
-      sourceType: sourceType || 'gmail',
+      u: userId, // Shortened keys to reduce size
+      s: sourceType || 'gmail',
+      t: Date.now() // Timestamp for validation
     };
-    const state = Buffer.from(JSON.stringify(stateObj)).toString('base64');
+    
+    // Use URL-safe Base64 encoding
+    const state = Buffer.from(JSON.stringify(stateObj))
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=/g, '');
 
     // Get OAuth URL with state
-    const authUrl = getAuthUrl(state);
+    const authUrl = getAuthUrl(state, req);
     console.log(`[OAuth] Redirecting to Google OAuth for user ${userId}, sourceType: ${sourceType || 'gmail'}`);
     console.log(`[OAuth] Google OAuth URL generated successfully`);
 
@@ -100,11 +107,21 @@ router.get('/google/callback', async (req, res) => {
     
     if (state) {
       try {
-        // Decode Base64 state parameter
-        const stateJson = Buffer.from(state, 'base64').toString('utf-8');
+        // Decode URL-safe Base64 state parameter
+        const base64 = state
+          .replace(/-/g, '+')
+          .replace(/_/g, '/');
+        
+        // Add padding if needed
+        const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+        
+        const stateJson = Buffer.from(padded, 'base64').toString('utf-8');
         const stateData = JSON.parse(stateJson);
-        userId = stateData.userId;
-        sourceType = stateData.sourceType || 'gmail';
+        
+        // Support both old and new format
+        userId = stateData.u || stateData.userId;
+        sourceType = stateData.s || stateData.sourceType || 'gmail';
+        
         console.log(`[OAuth] Decoded state:`, { userId, sourceType });
       } catch (error) {
         console.error('[OAuth] Error parsing state:', error);
