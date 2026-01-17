@@ -355,51 +355,6 @@ Already configured! Just ensure:
 
 ## 📊 Key Features Explained
 
-### Maximum Accuracy (50% Similarity Threshold)
-
-We use the **highest practical similarity threshold (0.50)** to ensure only highly relevant results:
-
-```javascript
-minSimilarity: 0.50  // Only 50%+ similar chunks are used
-```
-
-This means:
-- ✅ Only extremely relevant emails/documents are returned
-- ✅ No loosely related or irrelevant content
-- ✅ Accurate, focused answers
-- ✅ Better user trust and experience
-
-### FREE AI Embeddings
-
-We use **Hugging Face Inference API** for completely FREE embeddings:
-
-```javascript
-// No installation, no cost, just API calls
-const embedding = await fetch('https://api-inference.huggingface.co/...')
-```
-
-Benefits:
-- 🆓 Completely FREE (no credit card needed)
-- ⚡ Fast inference (< 1 second)
-- 🎯 High quality (`sentence-transformers/all-MiniLM-L6-v2`)
-- 🔄 Automatic fallback to Ollama if needed
-
-### Responsive Design
-
-Every page is optimized for all devices:
-
-```css
-/* Mobile-first approach */
-p-3 sm:p-4 lg:p-8        /* Responsive padding */
-text-sm md:text-base     /* Responsive text */
-flex-col md:flex-row     /* Responsive layout */
-```
-
-Tested on:
-- 📱 Mobile (320px - 768px)
-- 📱 Tablet (768px - 1024px)
-- 💻 Desktop (1024px+)
-
 ---
 
 ## 🧪 Development Scripts
@@ -438,95 +393,12 @@ npm run lint               # Run ESLint
 - ✅ **SQL injection prevention** - Parameterized queries
 - ✅ **XSS protection** - Content security headers
 - ✅ **Rate limiting** - API abuse prevention
-
 ---
 
-## 🐛 Troubleshooting
 
-### Database Connection Timeout
 
-If you see "Connection terminated due to connection timeout":
 
-```javascript
-// Already fixed in server/config/database.js
-connectionTimeoutMillis: 20000  // 20 seconds (was 5)
-max: 10                         // Reduced for free tier
-```
 
-### OAuth "Unsupported state" Error
 
-1. Check redirect URI in Google Cloud Console
-2. Must match exactly: `https://your-backend.onrender.com/auth/google/callback`
-3. Use HTTPS (not HTTP) for production
-
-### Embeddings Not Working
-
-1. Check Hugging Face API status
-2. Verify internet connection
-3. System automatically falls back to keyword search
-
-### No Relevant Results
-
-1. Ensure sources are synced (click "Sync Gmail")
-2. Check similarity threshold (currently 0.50 = maximum)
-3. Try rephrasing your question
-4. Verify data exists in database
-
----
-
-## 📈 Performance
-
-- ⚡ **< 500ms** average API response time
-- 🚀 **< 2s** page load time (Vercel CDN)
-- 💾 **< 100MB** memory usage (backend)
-- 📊 **50% similarity** threshold for accuracy
-- 🔄 **Automatic fallbacks** for reliability
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- [Hugging Face](https://huggingface.co) - FREE embeddings API
-- [Supabase](https://supabase.com) - PostgreSQL + pgvector
-- [Vercel](https://vercel.com) - Frontend hosting
-- [Render](https://render.com) - Backend hosting
-- [shadcn/ui](https://ui.shadcn.com) - Beautiful components
-- [Ollama](https://ollama.ai) - Local LLM support
-
----
-
-## 📧 Contact
-
-**Developer**: Sai Charan Singupurapu
-
-- GitHub: [@singupurapusaicharan](https://github.com/singupurapusaicharan)
-- Project: [Synapse AI](https://github.com/singupurapusaicharan/Synapse_Ai)
-- Live Demo: [synapse-ai.vercel.app](https://synapse-ai.vercel.app)
-
----
-
-<div align="center">
-
-**Built with ❤️ by students, for students**
-
-⭐ Star this repo if you find it helpful!
 
 </div>
