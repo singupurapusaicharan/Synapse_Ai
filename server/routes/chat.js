@@ -662,74 +662,73 @@ ${context}
 
 Please provide a detailed answer based on the context above.`;
 
-          // Helper function to generate structured response from chunks when Ollama fails
+          // Helper function to generate STRICTLY relevant response from chunks
           const generateFallbackAnswer = (question, chunks) => {
             const questionLower = question.toLowerCase();
+            const questionWords = questionLower.split(/\s+/).filter(w => w.length > 3);
             let summary = '';
             const points = [];
             
-            // Extract key information from chunks
+            // Extract ONLY highly relevant information from chunks
             chunks.forEach((chunk, index) => {
               const citationNum = index + 1;
               const metadata = chunk.metadata || {};
               const chunkText = chunk.chunk_text || '';
               
-              // Extract relevant sentences from chunk
-              const sentences = chunkText.split(/[.!?]+/).filter(s => s.trim().length > 20);
-              
-              // Find sentences that relate to the question
-              sentences.forEach(sentence => {
-                const sentLower = sentence.toLowerCase();
-                if (questionLower.split(' ').some(word => word.length > 3 && sentLower.includes(word))) {
-                  const cleanSent = sentence.trim();
-                  if (cleanSent && !points.some(p => p.includes(cleanSent.substring(0, 50)))) {
-                    points.push(`• ${cleanSent.trim()} [${citationNum}]`);
-                  }
+              // For email-specific questions, prioritize metadata
+              if (questionLower.includes('email') || questionLower.includes('mail')) {
+                if (metadata.subject) {
+                  points.push(`• **Subject**: ${metadata.subject} [${citationNum}]`);
                 }
-              });
-              
-              // Add metadata-based points
-              if (metadata.subject && questionLower.includes('subject')) {
-                points.push(`• Subject: ${metadata.subject} [${citationNum}]`);
-              }
-              if (metadata.fromName && questionLower.includes('from') || questionLower.includes('who')) {
-                points.push(`• From: ${metadata.fromName} [${citationNum}]`);
-              }
-              if (metadata.date && questionLower.includes('when') || questionLower.includes('date')) {
-                points.push(`• Date: ${metadata.date} [${citationNum}]`);
+                if (metadata.fromName) {
+                  points.push(`• **From**: ${metadata.fromName} [${citationNum}]`);
+                }
+                if (metadata.date) {
+                  points.push(`• **Date**: ${metadata.date} [${citationNum}]`);
+                }
+                // Add a brief preview of content
+                const preview = chunkText.substring(0, 200).trim();
+                if (preview) {
+                  points.push(`• **Content**: ${preview}... [${citationNum}]`);
+                }
+              } else {
+                // For general questions, extract sentences that match MULTIPLE question words
+                const sentences = chunkText.split(/[.!?]+/).filter(s => s.trim().length > 30);
+                
+                sentences.forEach(sentence => {
+                  const sentLower = sentence.toLowerCase();
+                  // Count how many question words appear in this sentence
+                  const matchCount = questionWords.filter(word => sentLower.includes(word)).length;
+                  
+                  // Only include if sentence matches at least 2 question words (stricter)
+                  if (matchCount >= 2) {
+                    const cleanSent = sentence.trim();
+                    if (cleanSent && !points.some(p => p.includes(cleanSent.substring(0, 50)))) {
+                      points.push(`• ${cleanSent} [${citationNum}]`);
+                    }
+                  }
+                });
               }
             });
             
-            // Generate summary based on question type
+            // Limit to top 5 most relevant points
+            const limitedPoints = points.slice(0, 5);
+            
+            if (limitedPoints.length === 0) {
+              return `I found ${chunks.length} document(s) but couldn't extract information that directly answers your question. Please try rephrasing or asking a more specific question.`;
+            }
+            
+            // Generate concise summary
             if (questionLower.includes('who') || questionLower.includes('from')) {
               const fromNames = [...new Set(chunks.map(c => c.metadata?.fromName).filter(Boolean))];
               summary = fromNames.length > 0 
-                ? `Based on your emails, here are the relevant messages from: ${fromNames.join(', ')}.`
-                : `Here is information related to your question:`;
-            } else if (questionLower.includes('what') || questionLower.includes('about')) {
-              summary = `Based on your emails and documents, here's what I found:`;
-            } else if (questionLower.includes('when')) {
-              summary = `Here are the dates and timing information from your sources:`;
+                ? `### Answer\nFound ${chunks.length} email(s) from: ${fromNames.slice(0, 3).join(', ')}${fromNames.length > 3 ? '...' : ''}\n\n### Details`
+                : `### Answer\nFound ${chunks.length} relevant email(s)\n\n### Details`;
             } else {
-              summary = `Based on the available information from your emails and documents:`;
+              summary = `### Answer\nBased on ${chunks.length} relevant source(s):\n\n### Details`;
             }
             
-            // If no specific points found, use chunk summaries
-            if (points.length === 0) {
-              chunks.slice(0, 5).forEach((chunk, index) => {
-                const citationNum = index + 1;
-                const preview = (chunk.chunk_text || '').substring(0, 150).trim();
-                if (preview) {
-                  points.push(`• ${preview}${preview.length >= 150 ? '...' : ''} [${citationNum}]`);
-                }
-              });
-            }
-            
-            if (points.length === 0) {
-              return `I found ${chunks.length} relevant document(s), but couldn't extract specific details. Please try rephrasing your question or check the citations below for more information.`;
-            }
-            
-            return `${summary}\n\n${points.join('\n')}\n\n[Note: This is a summary based on available sources. Click the citations for full details.]`;
+            return `${summary}\n${limitedPoints.join('\n')}`;
           };
 
           console.log(`[Query] Calling Ollama chat API with ${processedChunks.length} chunks (context length: ${context.length} chars)...`);
