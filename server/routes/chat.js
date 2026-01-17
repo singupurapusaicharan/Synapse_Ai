@@ -470,7 +470,7 @@ router.post('/message', authenticateToken, async (req, res) => {
             userId: userId.toString(),
             queryEmbedding,
             k: RAG_SEARCH_K, // Pull candidates; tuned for speed via env
-            minSimilarity: 0.22, // More forgiving; prevents false "no results"
+            minSimilarity: 0.35, // INCREASED from 0.22 - only return highly relevant results
             boostRecent: true
           };
 
@@ -524,7 +524,7 @@ router.post('/message', authenticateToken, async (req, res) => {
         // Filter out very short or low-similarity chunks to reduce noisy answers
         matchedChunks = matchedChunks.filter(chunk => {
           const textOk = chunk.chunk_text && chunk.chunk_text.trim().length >= 40;
-          const similarityOk = typeof chunk.similarity === 'number' ? chunk.similarity >= 0.22 : true;
+          const similarityOk = typeof chunk.similarity === 'number' ? chunk.similarity >= 0.35 : true; // INCREASED from 0.22
           return textOk && similarityOk;
         });
 
