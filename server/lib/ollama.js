@@ -1,7 +1,11 @@
 // Ollama client utilities
 // Handles embeddings and chat generation using Ollama API with auto-detection
+// Falls back to Hugging Face (FREE) if Ollama is not available
+
+import { getHuggingFaceEmbedding, checkHuggingFace } from './huggingface.js';
 
 const EMBEDDING_MODEL = process.env.OLLAMA_EMBEDDING_MODEL || 'nomic-embed-text';
+const USE_HUGGINGFACE = process.env.USE_HUGGINGFACE !== 'false'; // Default to true
 
 function normalizeModelName(name) {
   if (!name) return name;
@@ -139,9 +143,23 @@ async function detectWorkingUrl() {
 /**
  * Check if Ollama is running and accessible
  * Uses cached result if available, otherwise auto-detects working URL
- * @throws {Error} If Ollama is not reachable
+ * Falls back to Hugging Face (FREE) if Ollama is not available
+ * @throws {Error} If neither Ollama nor Hugging Face is available
  */
 export async function checkOllama() {
+  // Try Hugging Face first if enabled (FREE and always available)
+  if (USE_HUGGINGFACE) {
+    try {
+      const hfAvailable = await checkHuggingFace();
+      if (hfAvailable) {
+        console.log('[Embedding] Using Hugging Face (FREE) for embeddings');
+        return true;
+      }
+    } catch (error) {
+      console.warn('[Embedding] Hugging Face check failed:', error.message);
+    }
+  }
+
   // Use cached working URL if available and recent
   if (workingBaseUrl && lastHealthCheck && (Date.now() - lastHealthCheck < HEALTH_CHECK_CACHE_MS)) {
     // Quick verification
@@ -154,12 +172,20 @@ export async function checkOllama() {
     lastHealthCheck = null;
   }
 
-  // Auto-detect working URL
-  workingBaseUrl = await detectWorkingUrl();
-  lastHealthCheck = Date.now();
-
-  console.log(`[Ollama] Health check passed. Using embedding model: ${EMBEDDING_MODEL}, chat model: ${CHAT_MODEL}`);
-  return true;
+  // Try to detect Ollama
+  try {
+    workingBaseUrl = await detectWorkingUrl();
+    lastHealthCheck = Date.now();
+    console.log(`[Ollama] Health check passed. Using embedding model: ${EMBEDDING_MODEL}, chat model: ${CHAT_MODEL}`);
+    return true;
+  } catch (error) {
+    // Ollama not available, but Hugging Face should work
+    if (USE_HUGGINGFACE) {
+      console.log('[Embedding] Ollama not available, using Hugging Face (FREE)');
+      return true;
+    }
+    throw error;
+  }
 }
 
 /**
@@ -177,11 +203,11 @@ async function getWorkingBaseUrl() {
 const loggedErrors = new Set();
 
 /**
- * Get embedding vector for text using Ollama
+ * Get embedding vector for text using Ollama or Hugging Face (FREE fallback)
  * @param {string} text - Text to embed
  * @param {string} messageId - Optional message ID for logging
  * @param {number} chunkIndex - Optional chunk index for logging
- * @returns {Promise<number[]|null>} - Embedding vector (length 768) or null if failed
+ * @returns {Promise<number[]|null>} - Embedding vector or null if failed
  */
 export async function getEmbedding(text, messageId = null, chunkIndex = null) {
   if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -192,6 +218,21 @@ export async function getEmbedding(text, messageId = null, chunkIndex = null) {
   const maxLength = 8000;
   const truncatedText = text.length > maxLength ? text.substring(0, maxLength) : text;
 
+  // Try Hugging Face first if enabled (FREE and always available)
+  if (USE_HUGGINGFACE) {
+    try {
+      const embedding = await getHuggingFaceEmbedding(truncatedText);
+      if (embedding && Array.isArray(embedding) && embedding.length === 384) {
+        // Pad to 768 dimensions to match Ollama format (for compatibility)
+        const padded = [...embedding, ...new Array(384).fill(0)];
+        return padded;
+      }
+    } catch (error) {
+      console.warn(`[Embedding] Hugging Face failed, trying Ollama: ${error.message}`);
+    }
+  }
+
+  // Fallback to Ollama if available
   try {
     // Check cache first
     const cacheKey = getCacheKey(truncatedText);
