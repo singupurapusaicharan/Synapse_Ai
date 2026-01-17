@@ -6,9 +6,6 @@
 
 A production-ready, intelligent knowledge management system that brings semantic search and conversational AI to your Gmail and Google Drive.
 
-[![Backend](https://img.shields.io/badge/backend-deployed-blue?style=for-the-badge)](https://synapse-ai-backend-1303.onrender.com)
-
-
 [Features](#-features) • [Tech Stack](#-tech-stack) • [Quick Start](#-quick-start) • [Deployment](#-deployment) • [Architecture](#-architecture)
 
 </div>
