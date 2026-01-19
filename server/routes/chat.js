@@ -775,19 +775,28 @@ Please provide a detailed answer based on the context above.`;
               metadata.gmailOwnerEmail ||
               null;
             
-            // Gmail deep link using SUBJECT SEARCH - MOST RELIABLE method
-            // Direct message ID links don't work anymore, so we search by subject
-            // This opens Gmail search with the exact subject, which shows the email
-            // Works on ALL devices (mobile, desktop, web)
+            // Gmail deep link using SUBJECT SEARCH with ACCOUNT EMAIL
+            // This ensures Gmail opens in the correct account (multi-account support)
+            // Format: ?authuser=email#search/query
             if (metadata.subject) {
               // Use subject search - most reliable and works everywhere
               const subject = metadata.subject.trim();
               // Encode for URL and wrap in quotes for exact match
               const encodedSubject = encodeURIComponent(`"${subject}"`);
-              deepLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
+              
+              // Add authuser parameter to open in correct Gmail account
+              if (ownerEmail) {
+                deepLink = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/${encodedSubject}`;
+              } else {
+                deepLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
+              }
             } else if (messageId) {
-              // Fallback: try message ID search (may not work)
-              deepLink = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${messageId}`;
+              // Fallback: try message ID search
+              if (ownerEmail) {
+                deepLink = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/rfc822msgid:${messageId}`;
+              } else {
+                deepLink = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${messageId}`;
+              }
             } else {
               deepLink = null;
             }

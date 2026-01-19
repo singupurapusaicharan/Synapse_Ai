@@ -384,17 +384,24 @@ export async function ingestGmail(userId) {
 
         // Store all chunks (user_id must be UUID)
         console.log(`[Gmail Ingestion] BEFORE insertion: Message ${message.id} - ${chunks.length} chunks (embedded: ${embeddings.filter(Boolean).length})`);
+        
+        // Build Gmail URL with account email for multi-account support
+        let gmailUrl;
+        if (subject && ownerEmail) {
+          // Use authuser parameter to open in correct Gmail account
+          gmailUrl = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/${encodeURIComponent('"' + subject + '"')}`;
+        } else if (subject) {
+          gmailUrl = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent('"' + subject + '"')}`;
+        } else {
+          gmailUrl = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`;
+        }
+        
         await upsertChunksFlexible({
           userId: userId, // UUID
           sourceType: 'gmail',
           sourceItemId: message.id,
           title: subject,
-          // Gmail deep link using SUBJECT SEARCH - works reliably on ALL devices
-          // Direct message IDs don't work in URLs anymore, so we search by subject
-          // This is the most reliable method that actually opens the email
-          url: subject 
-            ? `https://mail.google.com/mail/u/0/#search/${encodeURIComponent('"' + subject + '"')}`
-            : `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`,
+          url: gmailUrl,
           chunks,
           embeddings,
           metadata: {
