@@ -389,9 +389,12 @@ export async function ingestGmail(userId) {
           sourceType: 'gmail',
           sourceItemId: message.id,
           title: subject,
-          // Gmail deep link using search - works reliably on ALL devices
-          // Uses rfc822msgid search which finds the exact message
-          url: `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`,
+          // Gmail deep link using SUBJECT SEARCH - works reliably on ALL devices
+          // Direct message IDs don't work in URLs anymore, so we search by subject
+          // This is the most reliable method that actually opens the email
+          url: metadata.subject 
+            ? `https://mail.google.com/mail/u/0/#search/${encodeURIComponent('"' + subject + '"')}`
+            : `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`,
           chunks,
           embeddings,
           metadata: {

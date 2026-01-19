@@ -760,7 +760,7 @@ Please provide a detailed answer based on the context above.`;
             let threadId = null;
             let ownerEmail = null;
           if (chunk.source_type === 'gmail') {
-            // Get Gmail identifiers
+            // Get Gmail identifiers and metadata
             messageId = chunk.source_item_id || metadata.gmailMessageId || metadata.messageId || null;
             threadId = metadata.threadId || metadata.thread_id || null;
             ownerEmail =
@@ -769,19 +769,19 @@ Please provide a detailed answer based on the context above.`;
               metadata.gmailOwnerEmail ||
               null;
             
-            // Gmail deep link using search - MOST RELIABLE method that works on ALL devices
-            // Format: https://mail.google.com/mail/u/0/#search/rfc822msgid:{messageId}
-            // This searches for the message and opens it directly
-            // Works on mobile, desktop, and web because it uses Gmail's search functionality
-            //
-            // Fallback: Use subject-based search if no message ID
-            if (messageId) {
-              // Use rfc822msgid search - most reliable
+            // Gmail deep link using SUBJECT SEARCH - MOST RELIABLE method
+            // Direct message ID links don't work anymore, so we search by subject
+            // This opens Gmail search with the exact subject, which shows the email
+            // Works on ALL devices (mobile, desktop, web)
+            if (metadata.subject) {
+              // Use subject search - most reliable and works everywhere
+              const subject = metadata.subject.trim();
+              // Encode for URL and wrap in quotes for exact match
+              const encodedSubject = encodeURIComponent(`"${subject}"`);
+              deepLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
+            } else if (messageId) {
+              // Fallback: try message ID search (may not work)
               deepLink = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${messageId}`;
-            } else if (metadata.subject) {
-              // Fallback: search by subject
-              const encodedSubject = encodeURIComponent(metadata.subject);
-              deepLink = `https://mail.google.com/mail/u/0/#search/subject:${encodedSubject}`;
             } else {
               deepLink = null;
             }
