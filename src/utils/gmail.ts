@@ -58,13 +58,13 @@ export function buildGmailDeepLinkUrl(input: GmailDeepLinkInput): string | null 
   const safeMessageId = messageId && isSafeGmailId(messageId) ? messageId : null;
   const safeThreadId = threadId && isSafeGmailId(threadId) ? threadId : null;
 
-  // Use #all/ to search across all folders - more reliable on mobile
+  // Use #inbox/ - standard location for messages
   if (safeMessageId) {
-    return `https://mail.google.com/mail/u/0/#all/${safeMessageId}`;
+    return `https://mail.google.com/mail/u/0/#inbox/${safeMessageId}`;
   }
 
   if (safeThreadId) {
-    return `https://mail.google.com/mail/u/0/#all/${safeThreadId}`;
+    return `https://mail.google.com/mail/u/0/#inbox/${safeThreadId}`;
   }
 
   return null;

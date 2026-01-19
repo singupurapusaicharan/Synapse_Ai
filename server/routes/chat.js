@@ -760,7 +760,7 @@ Please provide a detailed answer based on the context above.`;
             let threadId = null;
             let ownerEmail = null;
           if (chunk.source_type === 'gmail') {
-            // Use Gmail Message ID format: #all/<MESSAGE_ID>
+            // Use Gmail Message ID format
             // MESSAGE_ID comes from Gmail API (message.id) stored in source_item_id
             messageId = chunk.source_item_id || metadata.gmailMessageId || metadata.messageId || null;
             threadId = metadata.threadId || metadata.thread_id || null;
@@ -771,19 +771,19 @@ Please provide a detailed answer based on the context above.`;
               null;
             
             // Gmail universal deep link format that works on ALL devices (mobile, desktop, web):
-            // https://mail.google.com/mail/u/0/#all/{messageId}
+            // https://mail.google.com/mail/u/0/#inbox/{messageId}
             // 
-            // Using /u/0/ with #all/ works universally because:
+            // Using /u/0/ with #inbox/ works universally because:
             // 1. Gmail automatically redirects to the correct account if user is signed in
-            // 2. #all/ searches across ALL folders (inbox, sent, archive, etc.) - more reliable
+            // 2. #inbox/ is more reliable than #all/ for finding messages
             // 3. Works on mobile browsers and apps
             // 4. Works on desktop browsers
             //
             // Priority: messageId > threadId (message is more specific)
             if (messageId) {
-              deepLink = `https://mail.google.com/mail/u/0/#all/${messageId}`;
+              deepLink = `https://mail.google.com/mail/u/0/#inbox/${messageId}`;
             } else if (threadId) {
-              deepLink = `https://mail.google.com/mail/u/0/#all/${threadId}`;
+              deepLink = `https://mail.google.com/mail/u/0/#inbox/${threadId}`;
             } else {
               deepLink = null;
             }
