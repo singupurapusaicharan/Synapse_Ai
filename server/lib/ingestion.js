@@ -392,7 +392,7 @@ export async function ingestGmail(userId) {
           // Gmail deep link using SUBJECT SEARCH - works reliably on ALL devices
           // Direct message IDs don't work in URLs anymore, so we search by subject
           // This is the most reliable method that actually opens the email
-          url: metadata.subject 
+          url: subject 
             ? `https://mail.google.com/mail/u/0/#search/${encodeURIComponent('"' + subject + '"')}`
             : `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`,
           chunks,

@@ -1,7 +1,8 @@
 // Hugging Face Inference API for embeddings (FREE)
 // No installation needed, just API calls
 
-const HF_API_URL = 'https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2';
+// Updated URL - Hugging Face migrated from api-inference.huggingface.co to router.huggingface.co
+const HF_API_URL = 'https://router.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2';
 const HF_TOKEN = process.env.HUGGINGFACE_API_KEY || ''; // Optional, works without token but with rate limits
 
 /**
