@@ -85,7 +85,7 @@ const REQUIRED_ENV_VARS = {
   EMAIL_PASSWORD: {
     required: false,
     description: 'Email service password',
-    sensitive: true,
+    sensitive: false, // Changed to false since it's optional
   },
   
   // Optional: Hugging Face API
