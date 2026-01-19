@@ -37,16 +37,19 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
         const Icon = sourceIcons[source] || sourceIcons.unknown;
         const colorClass = sourceColors[source] || sourceColors.unknown;
 
-        // Gmail: build deep link from IDs so we open the exact referenced email/thread.
+        // Gmail: use the URL provided by backend (already contains correct deep link)
         if (source === 'gmail') {
-          const deepLink =
-            buildGmailDeepLinkUrl({
-              providerMessageId: citation.providerMessageId,
-              threadId: citation.threadId,
-              accountEmail: citation.accountEmail,
-            }) ||
-            (citation.url && citation.url !== '#' ? citation.url : null);
-
+          // Backend provides the complete deep link in citation.url
+          const deepLink = citation.url && citation.url !== '#' ? citation.url : null;
+          
+          // Fallback to building from IDs if URL not provided
+          const builtLink = !deepLink ? buildGmailDeepLinkUrl({
+            providerMessageId: citation.providerMessageId,
+            threadId: citation.threadId,
+            accountEmail: citation.accountEmail,
+          }) : null;
+          
+          const finalLink = deepLink || builtLink;
           const fallbackUrl = buildGmailInboxUrl(citation.accountEmail);
 
           const handleClick = (e: React.MouseEvent) => {
@@ -54,10 +57,11 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
             e.preventDefault();
             e.stopPropagation();
 
-            const targetUrl = deepLink || fallbackUrl;
+            const targetUrl = finalLink || fallbackUrl;
+            console.log('[Citation Click] Opening Gmail URL:', targetUrl);
             window.open(targetUrl, '_blank', 'noopener,noreferrer');
 
-            if (!deepLink) {
+            if (!finalLink) {
               toast({
                 title: 'Opened Gmail',
                 description:
@@ -70,7 +74,7 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
           return (
             <a
               key={citation.id}
-              href={deepLink || fallbackUrl}
+              href={finalLink || fallbackUrl}
               onClick={handleClick}
               target="_blank"
               rel="noopener noreferrer"
