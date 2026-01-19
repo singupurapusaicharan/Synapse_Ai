@@ -775,28 +775,32 @@ Please provide a detailed answer based on the context above.`;
               metadata.gmailOwnerEmail ||
               null;
             
-            // Gmail deep link using SUBJECT SEARCH with ACCOUNT EMAIL
+            // Gmail deep link - try thread ID first (opens email directly), fallback to search
+            // Thread ID format: #inbox/threadId or #all/threadId
             // This ensures Gmail opens in the correct account (multi-account support)
-            // Format: ?authuser=email#search/query
-            if (metadata.subject) {
-              // Use subject search - most reliable and works everywhere
+            
+            if (threadId && ownerEmail) {
+              // Try thread ID with account email - most direct way to open the email
+              deepLink = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#all/${threadId}`;
+            } else if (threadId) {
+              // Try thread ID without account email
+              deepLink = `https://mail.google.com/mail/u/0/#all/${threadId}`;
+            } else if (metadata.subject && ownerEmail) {
+              // Fallback to subject search with account email
               const subject = metadata.subject.trim();
-              // Encode for URL and wrap in quotes for exact match
               const encodedSubject = encodeURIComponent(`"${subject}"`);
-              
-              // Add authuser parameter to open in correct Gmail account
-              if (ownerEmail) {
-                deepLink = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/${encodedSubject}`;
-              } else {
-                deepLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
-              }
+              deepLink = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/${encodedSubject}`;
+            } else if (metadata.subject) {
+              // Fallback to subject search without account email
+              const subject = metadata.subject.trim();
+              const encodedSubject = encodeURIComponent(`"${subject}"`);
+              deepLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
+            } else if (messageId && ownerEmail) {
+              // Last resort: message ID search with account email
+              deepLink = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/rfc822msgid:${messageId}`;
             } else if (messageId) {
-              // Fallback: try message ID search
-              if (ownerEmail) {
-                deepLink = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/rfc822msgid:${messageId}`;
-              } else {
-                deepLink = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${messageId}`;
-              }
+              // Last resort: message ID search without account email
+              deepLink = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${messageId}`;
             } else {
               deepLink = null;
             }

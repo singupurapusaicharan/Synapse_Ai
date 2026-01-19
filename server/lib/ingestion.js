@@ -385,14 +385,22 @@ export async function ingestGmail(userId) {
         // Store all chunks (user_id must be UUID)
         console.log(`[Gmail Ingestion] BEFORE insertion: Message ${message.id} - ${chunks.length} chunks (embedded: ${embeddings.filter(Boolean).length})`);
         
-        // Build Gmail URL with account email for multi-account support
+        // Build Gmail URL - prioritize thread ID (opens email directly), fallback to search
         let gmailUrl;
-        if (subject && ownerEmail) {
-          // Use authuser parameter to open in correct Gmail account
+        if (msg.threadId && ownerEmail) {
+          // Use thread ID with account email - opens the email directly
+          gmailUrl = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#all/${msg.threadId}`;
+        } else if (msg.threadId) {
+          // Use thread ID without account email
+          gmailUrl = `https://mail.google.com/mail/u/0/#all/${msg.threadId}`;
+        } else if (subject && ownerEmail) {
+          // Fallback: subject search with account email
           gmailUrl = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/${encodeURIComponent('"' + subject + '"')}`;
         } else if (subject) {
+          // Fallback: subject search without account email
           gmailUrl = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent('"' + subject + '"')}`;
         } else {
+          // Last resort: message ID search
           gmailUrl = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`;
         }
         
