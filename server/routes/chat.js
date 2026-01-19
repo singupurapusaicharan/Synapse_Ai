@@ -411,23 +411,26 @@ router.post('/message', authenticateToken, async (req, res) => {
 
     const userMessage = userMessageResult.rows[0];
 
+    // Check sources (user_id is UUID in sources table)
     const sourcesCheck = await pool.query(
       `SELECT COUNT(*) as count FROM sources 
        WHERE user_id = $1 AND status = 'connected'`,
       [userId]
     );
 
+    // Check chunks (user_id is TEXT in document_chunks table, so convert UUID to string)
+    const userIdStr = String(userId);
     const chunksCheck = await pool.query(
       `SELECT COUNT(*) as count FROM document_chunks 
        WHERE user_id = $1`,
-      [userId.toString()]
+      [userIdStr]
     );
 
-    const hasSources = parseInt(sourcesCheck.rows[0].count) > 0;
-    const hasChunks = parseInt(chunksCheck.rows[0].count) > 0;
+    const hasSources = parseInt(sourcesCheck.rows[0]?.count || 0) > 0;
+    const hasChunks = parseInt(chunksCheck.rows[0]?.count || 0) > 0;
 
     // Debug logging to help diagnose sync issues
-    console.log(`[Query] User ${userId} - Sources: ${hasSources}, Chunks: ${hasChunks}, ChunkCount: ${chunksCheck.rows[0].count}`);
+    console.log(`[Query] User ${userId} (as string: ${userIdStr}) - Sources: ${hasSources}, Chunks: ${hasChunks}, ChunkCount: ${chunksCheck.rows[0]?.count || 0}`);
 
     let answer = !hasSources
       ? "No sources are connected yet. Please connect Gmail/Drive from Sources."
