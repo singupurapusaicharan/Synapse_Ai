@@ -15,6 +15,7 @@ import settingsRoutes from './routes/settings.js';
 import pool from './config/database.js'; // Uses Supabase Postgres connection
 import { validateEnvironmentOrExit } from './utils/envValidator.js';
 import { publicRateLimiter } from './middleware/rateLimiter.js';
+import { startPeriodicCleanup } from './utils/cleanup.js';
 
 dotenv.config();
 
@@ -307,6 +308,9 @@ async function startServer() {
     console.log(`   POST /api/auth/signup`);
     console.log(`   POST /api/auth/signin`);
     console.log(`   POST /api/auth/forgot-password`);
+    
+    // Start periodic cleanup tasks (sessions, old data, etc.)
+    startPeriodicCleanup();
   });
 }
 

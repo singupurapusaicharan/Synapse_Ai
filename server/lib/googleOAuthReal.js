@@ -223,7 +223,8 @@ export async function getAccessToken(userId) {
         e.code = 'OAUTH_INVALID_GRANT';
         throw e;
       }
-      console.error(`[OAuth] Error refreshing token:`, err);
+      // Sanitize error - don't log full error object which may contain tokens
+      console.error(`[OAuth] Error refreshing token: ${err.message || 'Unknown error'}`);
       throw err;
     }
     

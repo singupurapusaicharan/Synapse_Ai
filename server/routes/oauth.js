@@ -4,6 +4,7 @@ import express from 'express';
 import pool from '../config/database.js';
 import { verifySession } from '../middleware/sessionAuth.js';
 import { getAuthUrl, getTokensFromCode, storeOAuthTokens } from '../lib/googleOAuthReal.js';
+import { generateOAuthState, validateOAuthState } from '../utils/oauthState.js';
 
 const router = express.Router();
 
@@ -115,22 +116,9 @@ router.get('/google', verifySession, async (req, res) => {
       return res.redirect(`${frontendUrl}/sources?error=invalid_source_type`);
     }
 
-    // Create state parameter with userId and sourceType
-    // Use a simple, URL-safe format to avoid "Unsupported state" errors
-    const stateObj = {
-      u: userId, // Shortened keys to reduce size
-      s: sourceType || 'gmail',
-      t: Date.now() // Timestamp for validation
-    };
-    
-    // Use URL-safe Base64 encoding
-    const state = Buffer.from(JSON.stringify(stateObj))
-      .toString('base64')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '');
-
-    console.log(`[OAuth] Created state parameter (length: ${state.length})`);
+    // Generate secure state parameter with HMAC signature (CSRF protection)
+    const state = generateOAuthState(userId, sourceType || 'gmail');
+    console.log(`[OAuth] Created secure state parameter (length: ${state.length})`);
 
     // Get OAuth URL with state
     const authUrl = getAuthUrl(state, req);
@@ -179,25 +167,15 @@ router.get('/google/callback', async (req, res) => {
       return res.redirect(`${frontendUrl}/sources?error=oauth_failed&reason=no_code`);
     }
 
-    // Parse state to get userId and sourceType
+    // Validate and parse state parameter (CSRF protection)
     let userId = null;
     let sourceType = 'gmail';
     
     if (state) {
       try {
-        // Decode URL-safe Base64 state parameter
-        const base64 = state
-          .replace(/-/g, '+')
-          .replace(/_/g, '/');
-        
-        // Add padding if needed
-        const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
-        
-        const stateJson = Buffer.from(padded, 'base64').toString('utf-8');
-        const stateData = JSON.parse(stateJson);
-        
-        // Support both old and new format
-        userId = stateData.u || stateData.userId;
+        const stateData = validateOAuthState(state);
+        userId = stateData.userId;
+        sourceType = stateData.sourceType;
         sourceType = stateData.s || stateData.sourceType || 'gmail';
         
         console.log(`[OAuth] Decoded state:`, { userId, sourceType });
