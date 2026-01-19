@@ -13,34 +13,65 @@ import chatRoutes from './routes/chat.js';
 import feedbackRoutes from './routes/feedback.js';
 import settingsRoutes from './routes/settings.js';
 import pool from './config/database.js'; // Uses Supabase Postgres connection
+import { validateEnvironmentOrExit } from './utils/envValidator.js';
+import { publicRateLimiter } from './middleware/rateLimiter.js';
 
 dotenv.config();
 
-// Validate required environment variables
-if (!process.env.JWT_SECRET) {
-  console.error('❌ ERROR: JWT_SECRET is required. Please set JWT_SECRET in .env file');
-  process.exit(1);
-}
+// ============================================================================
+// SECURITY: Validate environment variables
+// ============================================================================
+validateEnvironmentOrExit();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-// Production-only security headers (minimal, avoids changing app behavior)
+// ============================================================================
+// SECURITY MIDDLEWARE
+// ============================================================================
+
+// Disable X-Powered-By header (don't reveal Express)
+app.disable('x-powered-by');
+
+// Security headers (applied to all environments)
+app.use((req, res, next) => {
+  // Prevent MIME type sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'DENY');
+  
+  // Control referrer information
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // Restrict feature access
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  
+  // XSS Protection (legacy browsers)
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Content Security Policy (basic)
+  res.setHeader('Content-Security-Policy', "default-src 'self'");
+  
+  next();
+});
+
+// HSTS (HTTPS Strict Transport Security) - production only
 if (process.env.NODE_ENV === 'production') {
-  app.disable('x-powered-by');
-  // Gzip responses for faster page/API loads (no behavior change, just smaller payloads)
-  app.use(compression());
   app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('Referrer-Policy', 'same-origin');
-    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-    // If you terminate TLS at a proxy (Render/Railway/etc.), HSTS is still valid for browsers.
-    res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     next();
   });
 }
+
+// Compression for better performance
+if (process.env.NODE_ENV === 'production') {
+  app.use(compression());
+}
+
+// ============================================================================
+// CORS CONFIGURATION
+// ============================================================================
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -72,17 +103,30 @@ app.use(cors({
       return callback(null, true);
     }
 
+    console.warn(`[CORS] Blocked origin: ${origin}`);
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
+  // Limit exposed headers
+  exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
 }));
+
+// ============================================================================
+// BODY PARSING MIDDLEWARE (with size limits)
+// ============================================================================
+
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Limit JSON payload size to prevent DoS
+app.use(express.json({ limit: '1mb' }));
+// Limit URL-encoded payload size
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// ============================================================================
+// PUBLIC ROUTES (with rate limiting)
+// ============================================================================
 
 // Root route
-app.get('/', (req, res) => {
-  console.log('✅ Root route hit');
+app.get('/', publicRateLimiter, (req, res) => {
   res.json({
     message: 'Synapse AI Backend API',
     version: '1.0.0',
@@ -90,104 +134,81 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       auth: '/api/auth',
-      'auth-test': '/api/auth/test',
-      queries: '/api/queries',
       sources: '/api/sources'
     },
     documentation: 'API available at /api'
   });
 });
 
-// Health check
+// Health check (no rate limit for monitoring)
 app.get('/health', (req, res) => {
-  console.log('✅ Health check hit');
-  res.json({ status: 'ok', message: 'Server is running' });
+  res.json({ status: 'ok', message: 'Server is running', timestamp: new Date().toISOString() });
 });
 
-// API Routes - MUST be registered before 404 handler
-console.log('📋 Registering API routes...');
-
-// Add route listing endpoint before registering routes
-app.get('/api', (req, res) => {
-  console.log('✅ /api route hit');
+// API info endpoint
+app.get('/api', publicRateLimiter, (req, res) => {
   res.json({
     message: 'Synapse AI API',
     version: '1.0.0',
-      endpoints: {
-        auth: {
-          base: '/api/auth',
-          test: 'GET /api/auth/test',
-          signup: 'POST /api/auth/signup',
-          signin: 'POST /api/auth/signin',
-          signout: 'POST /api/auth/signout',
-          me: 'GET /api/auth/me',
-          'forgot-password': 'POST /api/auth/forgot-password',
-          'reset-password': 'POST /api/auth/reset-password',
-          'validate-token': 'GET /api/auth/reset-password/:token'
-        },
-        chat: {
-          'new-session': 'POST /api/chat/session/new',
-          'get-sessions': 'GET /api/chat/sessions',
-          'get-session': 'GET /api/chat/session/:id',
-          'post-message': 'POST /api/chat/message',
-          'delete-session': 'DELETE /api/chat/session/:id'
-        },
-        oauth: {
-          'google-oauth': 'GET /auth/google',
-          'google-callback': 'GET /auth/google/callback'
-        },
-        history: {
-          base: '/api/history',
-          get: 'GET /api/history',
-          'clear-session': 'DELETE /api/history/clear-session',
-          'clear-all': 'DELETE /api/history/clear-all'
-        },
-        sources: {
-          base: '/api/sources',
-          get: 'GET /api/sources',
-          connect: 'POST /api/sources/connect',
-          sync: 'POST /api/sources/sync',
-          disconnect: 'POST /api/sources/disconnect'
-        }
+    endpoints: {
+      auth: {
+        base: '/api/auth',
+        signup: 'POST /api/auth/signup',
+        signin: 'POST /api/auth/signin',
+        signout: 'POST /api/auth/signout',
+        me: 'GET /api/auth/me',
+        'forgot-password': 'POST /api/auth/forgot-password',
+        'reset-password': 'POST /api/auth/reset-password',
+      },
+      chat: {
+        'new-session': 'POST /api/chat/session/new',
+        'get-sessions': 'GET /api/chat/sessions',
+        'get-session': 'GET /api/chat/session/:id',
+        'post-message': 'POST /api/chat/message',
+      },
+      sources: {
+        base: '/api/sources',
+        get: 'GET /api/sources',
+        sync: 'POST /api/sources/sync',
       }
+    }
   });
 });
 
+// ============================================================================
+// API ROUTES (with rate limiting applied in route files)
+// ============================================================================
+
+console.log('📋 Registering API routes...');
+
 // Register OAuth routes BEFORE auth routes to ensure /auth/google is matched first
-app.use('/auth/google', googleLoginRoutes); // Mounts at /auth/google/login & /auth/google/login/callback
+app.use('/auth/google', googleLoginRoutes);
 console.log('✅ Google Login OAuth routes registered at /auth/google');
+
 app.use('/auth', oauthRoutes);
 console.log('✅ OAuth routes registered at /auth');
+
 app.use('/api/auth', authRoutes);
 console.log('✅ Auth routes registered at /api/auth');
+
 app.use('/api/history', historyRoutes);
 console.log('✅ History routes registered at /api/history');
+
 app.use('/api/chat', chatRoutes);
 console.log('✅ Chat sessions routes registered at /api/chat');
+
 app.use('/api/sources', sourceRoutes);
 console.log('✅ Source routes registered at /api/sources');
+
 app.use('/api/feedback', feedbackRoutes);
 console.log('✅ Feedback routes registered at /api/feedback');
+
 app.use('/api/settings', settingsRoutes);
 console.log('✅ Settings routes registered at /api/settings');
 
-// Debug route for Ollama connectivity
-app.get('/api/debug/ollama', async (req, res) => {
-  // Do not expose infra/debug info in production
-  if (process.env.NODE_ENV === 'production') {
-    return res.status(404).json({ error: 'Not found' });
-  }
-  try {
-    const { getOllamaDebugInfo } = await import('./lib/ollama.js');
-    const info = await getOllamaDebugInfo();
-    res.json(info);
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      error: error.message || 'Failed to get Ollama debug info',
-    });
-  }
-});
+// ============================================================================
+// ERROR HANDLERS
+// ============================================================================
 
 // Ignore favicon requests
 app.get('/favicon.ico', (req, res) => {
@@ -196,17 +217,46 @@ app.get('/favicon.ico', (req, res) => {
 
 // 404 handler
 app.use((req, res) => {
-  // Don't log favicon requests
-  if (req.path !== '/favicon.ico') {
+  // Don't log favicon or health check requests
+  if (req.path !== '/favicon.ico' && req.path !== '/health') {
     console.log(`❌ 404 - Route not found: ${req.method} ${req.path}`);
   }
-  res.status(404).json({ error: 'Route not found', path: req.path, method: req.method });
+  res.status(404).json({ 
+    error: 'Route not found', 
+    path: req.path, 
+    method: req.method 
+  });
 });
 
-// Error handler
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  // Log error (but don't expose stack trace in production)
+  console.error('Server error:', err.message);
+  
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(err.stack);
+  }
+  
+  // Handle specific error types
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ 
+      error: 'Validation failed', 
+      details: err.message 
+    });
+  }
+  
+  if (err.name === 'UnauthorizedError') {
+    return res.status(401).json({ 
+      error: 'Unauthorized' 
+    });
+  }
+  
+  // Generic error response (don't expose internal details)
+  res.status(500).json({ 
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error' 
+      : err.message 
+  });
 });
 
 // Test database connection and start server
