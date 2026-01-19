@@ -109,7 +109,7 @@ async function keywordFallbackSearch({ pool, userId, question, limit = 30, sende
          metadata,
          created_at
        FROM document_chunks
-       WHERE user_id = $1::text
+       WHERE user_id = $1
          AND source_type = ANY($2)
          AND (
            COALESCE(metadata->>'fromName', '') ILIKE $3
@@ -152,7 +152,7 @@ async function keywordFallbackSearch({ pool, userId, question, limit = 30, sende
        metadata,
        created_at
      FROM document_chunks
-     WHERE user_id = $1::text
+     WHERE user_id = $1
        AND source_type = ANY($2)
        AND (
          chunk_text ILIKE ANY($3)
@@ -419,12 +419,15 @@ router.post('/message', authenticateToken, async (req, res) => {
 
     const chunksCheck = await pool.query(
       `SELECT COUNT(*) as count FROM document_chunks 
-       WHERE user_id = $1::text`,
-      [userId]
+       WHERE user_id = $1`,
+      [userId.toString()]
     );
 
     const hasSources = parseInt(sourcesCheck.rows[0].count) > 0;
     const hasChunks = parseInt(chunksCheck.rows[0].count) > 0;
+
+    // Debug logging to help diagnose sync issues
+    console.log(`[Query] User ${userId} - Sources: ${hasSources}, Chunks: ${hasChunks}, ChunkCount: ${chunksCheck.rows[0].count}`);
 
     let answer = !hasSources
       ? "No sources are connected yet. Please connect Gmail/Drive from Sources."
