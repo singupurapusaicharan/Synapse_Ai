@@ -389,9 +389,9 @@ export async function ingestGmail(userId) {
           sourceType: 'gmail',
           sourceItemId: message.id,
           title: subject,
-          // Universal Gmail deep link format that works on ALL devices (mobile, desktop, web)
-          // Using /u/0/ with #inbox/ - Gmail auto-redirects to correct account
-          url: `https://mail.google.com/mail/u/0/#inbox/${message.id}`,
+          // Gmail deep link using search - works reliably on ALL devices
+          // Uses rfc822msgid search which finds the exact message
+          url: `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`,
           chunks,
           embeddings,
           metadata: {

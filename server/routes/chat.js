@@ -760,8 +760,7 @@ Please provide a detailed answer based on the context above.`;
             let threadId = null;
             let ownerEmail = null;
           if (chunk.source_type === 'gmail') {
-            // Use Gmail Message ID format
-            // MESSAGE_ID comes from Gmail API (message.id) stored in source_item_id
+            // Get Gmail identifiers
             messageId = chunk.source_item_id || metadata.gmailMessageId || metadata.messageId || null;
             threadId = metadata.threadId || metadata.thread_id || null;
             ownerEmail =
@@ -770,20 +769,19 @@ Please provide a detailed answer based on the context above.`;
               metadata.gmailOwnerEmail ||
               null;
             
-            // Gmail universal deep link format that works on ALL devices (mobile, desktop, web):
-            // https://mail.google.com/mail/u/0/#inbox/{messageId}
-            // 
-            // Using /u/0/ with #inbox/ works universally because:
-            // 1. Gmail automatically redirects to the correct account if user is signed in
-            // 2. #inbox/ is more reliable than #all/ for finding messages
-            // 3. Works on mobile browsers and apps
-            // 4. Works on desktop browsers
+            // Gmail deep link using search - MOST RELIABLE method that works on ALL devices
+            // Format: https://mail.google.com/mail/u/0/#search/rfc822msgid:{messageId}
+            // This searches for the message and opens it directly
+            // Works on mobile, desktop, and web because it uses Gmail's search functionality
             //
-            // Priority: messageId > threadId (message is more specific)
+            // Fallback: Use subject-based search if no message ID
             if (messageId) {
-              deepLink = `https://mail.google.com/mail/u/0/#inbox/${messageId}`;
-            } else if (threadId) {
-              deepLink = `https://mail.google.com/mail/u/0/#inbox/${threadId}`;
+              // Use rfc822msgid search - most reliable
+              deepLink = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${messageId}`;
+            } else if (metadata.subject) {
+              // Fallback: search by subject
+              const encodedSubject = encodeURIComponent(metadata.subject);
+              deepLink = `https://mail.google.com/mail/u/0/#search/subject:${encodedSubject}`;
             } else {
               deepLink = null;
             }

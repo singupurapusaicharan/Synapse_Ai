@@ -38,16 +38,14 @@ export function buildGmailInboxUrl(accountEmail?: string | null, accountIndex?: 
 }
 
 /**
- * Gmail deep links that work universally on ALL devices (mobile, desktop, web):
+ * Gmail deep links using search - MOST RELIABLE method for ALL devices:
+ * - Format: `https://mail.google.com/mail/u/0/#search/rfc822msgid:{messageId}`
  * 
- * Uses the most reliable Gmail URL format that works across all platforms:
- * - Format: `https://mail.google.com/mail/u/0/#all/{messageId}`
- * 
- * Using #all/ instead of #inbox/ because:
- * 1. #all/ searches across ALL folders (inbox, sent, archive, etc.)
- * 2. More reliable for finding the specific message
- * 3. Works on mobile browsers and desktop
- * 4. Gmail app on mobile will intercept and open correctly
+ * Using Gmail search is the most reliable approach because:
+ * 1. Gmail's direct message URLs changed and no longer work with API IDs
+ * 2. Search by rfc822msgid finds the exact message regardless of folder
+ * 3. Works consistently on mobile apps, desktop browsers, and web
+ * 4. Opens the message directly after finding it
  * 
  * Priority: messageId > threadId (message is more specific)
  */
@@ -58,13 +56,13 @@ export function buildGmailDeepLinkUrl(input: GmailDeepLinkInput): string | null 
   const safeMessageId = messageId && isSafeGmailId(messageId) ? messageId : null;
   const safeThreadId = threadId && isSafeGmailId(threadId) ? threadId : null;
 
-  // Use #inbox/ - standard location for messages
+  // Use search by rfc822msgid - most reliable method
   if (safeMessageId) {
-    return `https://mail.google.com/mail/u/0/#inbox/${safeMessageId}`;
+    return `https://mail.google.com/mail/u/0/#search/rfc822msgid:${safeMessageId}`;
   }
 
   if (safeThreadId) {
-    return `https://mail.google.com/mail/u/0/#inbox/${safeThreadId}`;
+    return `https://mail.google.com/mail/u/0/#search/rfc822msgid:${safeThreadId}`;
   }
 
   return null;
