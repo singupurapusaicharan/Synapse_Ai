@@ -855,18 +855,31 @@ Please provide a detailed answer based on the context above.`;
           
           citations = Array.from(citationMap.values())
             .sort((a, b) => (b.score || 0) - (a.score || 0))
-            // STRICT FILTERING: Only show highly relevant citations (similarity >= 0.60 = 60%)
-            // This ensures only truly relevant sources are shown in citations
+            // ULTRA STRICT FILTERING: Only show citations actually referenced in the answer
+            // This prevents showing irrelevant citations
             .filter(citation => {
-              // If we have a similarity score, use it for filtering
+              // If we have a similarity score, use VERY strict threshold
               if (typeof citation.score === 'number') {
-                return citation.score >= 0.60; // 60% similarity threshold - very strict
+                // Only show citations with 70%+ similarity (very high relevance)
+                return citation.score >= 0.70;
               }
-              // If no score (keyword search results), keep only top 3
+              // For keyword search results, only keep top 2
               return true;
             })
-            // Limit to maximum 5 citations even if more are relevant
-            .slice(0, 5)
+            // Check if citation is actually referenced in the answer text
+            .filter(citation => {
+              // Extract citation numbers from answer (e.g., [1], [2])
+              const citationNumbers = answer.match(/\[(\d+)\]/g);
+              if (!citationNumbers || citationNumbers.length === 0) {
+                // If no citation numbers in answer, only show top 2 most relevant
+                return citation.number <= 2;
+              }
+              // Only show citations that are actually referenced in the answer
+              const referencedNumbers = citationNumbers.map(c => parseInt(c.replace(/[\[\]]/g, '')));
+              return referencedNumbers.includes(citation.number);
+            })
+            // Limit to maximum 3 citations
+            .slice(0, 3)
             .map((citation, index) => ({
               ...citation,
               number: index + 1
