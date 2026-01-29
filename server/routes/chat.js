@@ -855,6 +855,18 @@ Please provide a detailed answer based on the context above.`;
           
           citations = Array.from(citationMap.values())
             .sort((a, b) => (b.score || 0) - (a.score || 0))
+            // STRICT FILTERING: Only show highly relevant citations (similarity >= 0.60 = 60%)
+            // This ensures only truly relevant sources are shown in citations
+            .filter(citation => {
+              // If we have a similarity score, use it for filtering
+              if (typeof citation.score === 'number') {
+                return citation.score >= 0.60; // 60% similarity threshold - very strict
+              }
+              // If no score (keyword search results), keep only top 3
+              return true;
+            })
+            // Limit to maximum 5 citations even if more are relevant
+            .slice(0, 5)
             .map((citation, index) => ({
               ...citation,
               number: index + 1
