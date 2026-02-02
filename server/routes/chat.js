@@ -855,30 +855,30 @@ Please provide a detailed answer based on the context above.`;
           const generateFallbackAnswer = (question, chunks) => {
             const questionLower = question.toLowerCase();
             const questionWords = questionLower.split(/\s+/).filter(w => w.length > 3);
-            let summary = '';
-            const points = [];
             
             // Extract ONLY highly relevant information from chunks
+            const emailItems = [];
+            const keyPoints = [];
+            
             chunks.forEach((chunk, index) => {
               const citationNum = index + 1;
               const metadata = chunk.metadata || {};
               const chunkText = chunk.chunk_text || '';
               
-              // For email-specific questions, prioritize metadata
+              // For email-specific questions, format as professional email list
               if (questionLower.includes('email') || questionLower.includes('mail')) {
-                if (metadata.subject) {
-                  points.push(`• **Subject**: ${metadata.subject} [${citationNum}]`);
-                }
-                if (metadata.fromName) {
-                  points.push(`• **From**: ${metadata.fromName} [${citationNum}]`);
-                }
-                if (metadata.date) {
-                  points.push(`• **Date**: ${metadata.date} [${citationNum}]`);
-                }
-                // Add a brief preview of content
-                const preview = chunkText.substring(0, 200).trim();
-                if (preview) {
-                  points.push(`• **Content**: ${preview}... [${citationNum}]`);
+                const subject = metadata.subject || 'No Subject';
+                const from = metadata.fromName || metadata.from || 'Unknown';
+                const date = metadata.date || 'Unknown date';
+                const preview = chunkText.substring(0, 150).trim();
+                
+                emailItems.push(`• **${subject}** [${citationNum}]
+  From: ${from} | Date: ${date}
+  ${preview}...`);
+                
+                // Add key points from content
+                if (preview.length > 50) {
+                  keyPoints.push(`• ${preview.substring(0, 100)}... [${citationNum}]`);
                 }
               } else {
                 // For general questions, extract sentences that match MULTIPLE question words
@@ -892,32 +892,44 @@ Please provide a detailed answer based on the context above.`;
                   // Only include if sentence matches at least 2 question words (stricter)
                   if (matchCount >= 2) {
                     const cleanSent = sentence.trim();
-                    if (cleanSent && !points.some(p => p.includes(cleanSent.substring(0, 50)))) {
-                      points.push(`• ${cleanSent} [${citationNum}]`);
+                    if (cleanSent && !keyPoints.some(p => p.includes(cleanSent.substring(0, 50)))) {
+                      keyPoints.push(`• ${cleanSent} [${citationNum}]`);
                     }
                   }
                 });
               }
             });
             
-            // Limit to top 5 most relevant points
-            const limitedPoints = points.slice(0, 5);
+            // Limit to top 5 most relevant items
+            const limitedEmails = emailItems.slice(0, 5);
+            const limitedPoints = keyPoints.slice(0, 5);
             
-            if (limitedPoints.length === 0) {
+            if (limitedEmails.length === 0 && limitedPoints.length === 0) {
               return `I found ${chunks.length} document(s) but couldn't extract information that directly answers your question. Please try rephrasing or asking a more specific question.`;
             }
             
-            // Generate concise summary
+            // Generate professional formatted response
+            let response = '';
+            
+            // Summary section
             if (questionLower.includes('who') || questionLower.includes('from')) {
               const fromNames = [...new Set(chunks.map(c => c.metadata?.fromName).filter(Boolean))];
-              summary = fromNames.length > 0 
-                ? `### Answer\nFound ${chunks.length} email(s) from: ${fromNames.slice(0, 3).join(', ')}${fromNames.length > 3 ? '...' : ''}\n\n### Details`
-                : `### Answer\nFound ${chunks.length} relevant email(s)\n\n### Details`;
+              response += `**📋 Summary**\nFound ${chunks.length} email(s)${fromNames.length > 0 ? ` from ${fromNames.slice(0, 3).join(', ')}` : ''}.\n\n`;
             } else {
-              summary = `### Answer\nBased on ${chunks.length} relevant source(s):\n\n### Details`;
+              response += `**📋 Summary**\nFound ${chunks.length} relevant source(s) matching your query.\n\n`;
             }
             
-            return `${summary}\n${limitedPoints.join('\n')}`;
+            // Found Emails/Documents section
+            if (limitedEmails.length > 0) {
+              response += `**📧 Found Emails**\n${limitedEmails.join('\n\n')}\n\n`;
+            }
+            
+            // Key Points section
+            if (limitedPoints.length > 0) {
+              response += `**💡 Key Points**\n${limitedPoints.join('\n')}`;
+            }
+            
+            return response.trim();
           };
 
           console.log(`[Query] Calling Ollama chat API with ${processedChunks.length} chunks (context length: ${context.length} chars)...`);
