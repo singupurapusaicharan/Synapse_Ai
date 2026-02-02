@@ -970,36 +970,36 @@ Please provide a detailed answer based on the context above.`;
               metadata.gmailOwnerEmail ||
               null;
             
-            // Gmail deep link - MOBILE-FRIENDLY FORMAT
-            // For mobile Gmail app compatibility, we need to use formats that work on ALL devices:
-            // 1. Subject search (most reliable across all platforms)
-            // 2. Thread ID with proper format
-            // 3. Message ID search as last resort
+            // Gmail deep link - UNIVERSAL FORMAT for ALL devices (mobile, desktop, tablet)
+            // Key: Use authuser parameter to open in the CORRECT Gmail account
+            // This works on mobile apps, desktop browsers, and web across all devices
             
             if (metadata.subject && metadata.subject.trim()) {
-              // BEST: Subject search - works on mobile apps, desktop, and web
-              // Format: https://mail.google.com/mail/u/0/#search/subject:"exact subject"
+              // BEST: Subject search with account routing - works everywhere
               const subject = metadata.subject.trim();
               const encodedSubject = encodeURIComponent(`subject:"${subject}"`);
               
               if (ownerEmail) {
-                // With account email for multi-account support
-                deepLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}+in:anywhere`;
+                // With account email - ensures it opens in the CORRECT account
+                deepLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(ownerEmail)}#search/${encodedSubject}+in:anywhere`;
               } else {
-                // Without account email
+                // Without account email - opens in default account
                 deepLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}+in:anywhere`;
               }
             } else if (threadId) {
-              // GOOD: Thread ID - works well on most platforms
-              // Format: https://mail.google.com/mail/u/0/#all/threadId
+              // GOOD: Thread ID with account routing
               if (ownerEmail) {
-                deepLink = `https://mail.google.com/mail/u/0/#all/${threadId}`;
+                deepLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(ownerEmail)}#all/${threadId}`;
               } else {
                 deepLink = `https://mail.google.com/mail/u/0/#all/${threadId}`;
               }
             } else if (messageId) {
-              // FALLBACK: Message ID search
-              deepLink = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${messageId}`;
+              // FALLBACK: Message ID search with account routing
+              if (ownerEmail) {
+                deepLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(ownerEmail)}#search/rfc822msgid:${messageId}`;
+              } else {
+                deepLink = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${messageId}`;
+              }
             } else {
               deepLink = null;
             }

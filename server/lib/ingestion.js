@@ -385,19 +385,31 @@ export async function ingestGmail(userId) {
         // Store all chunks (user_id must be UUID)
         console.log(`[Gmail Ingestion] BEFORE insertion: Message ${message.id} - ${chunks.length} chunks (embedded: ${embeddings.filter(Boolean).length})`);
         
-        // Build Gmail URL - MOBILE-FRIENDLY FORMAT
-        // Priority: Subject search (most reliable on mobile) > Thread ID > Message ID
+        // Build Gmail URL - UNIVERSAL FORMAT for ALL devices
+        // Key: Use authuser parameter to open in the CORRECT Gmail account
         let gmailUrl;
         if (subject && subject.trim()) {
-          // BEST: Subject search - works on mobile apps, desktop, and web
+          // BEST: Subject search with account routing - works everywhere
           const encodedSubject = encodeURIComponent(`subject:"${subject.trim()}"`);
-          gmailUrl = `https://mail.google.com/mail/u/0/#search/${encodedSubject}+in:anywhere`;
+          if (ownerEmail) {
+            gmailUrl = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(ownerEmail)}#search/${encodedSubject}+in:anywhere`;
+          } else {
+            gmailUrl = `https://mail.google.com/mail/u/0/#search/${encodedSubject}+in:anywhere`;
+          }
         } else if (msg.threadId) {
-          // GOOD: Thread ID - works well on most platforms
-          gmailUrl = `https://mail.google.com/mail/u/0/#all/${msg.threadId}`;
+          // GOOD: Thread ID with account routing
+          if (ownerEmail) {
+            gmailUrl = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(ownerEmail)}#all/${msg.threadId}`;
+          } else {
+            gmailUrl = `https://mail.google.com/mail/u/0/#all/${msg.threadId}`;
+          }
         } else {
-          // FALLBACK: Message ID search
-          gmailUrl = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`;
+          // FALLBACK: Message ID search with account routing
+          if (ownerEmail) {
+            gmailUrl = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(ownerEmail)}#search/rfc822msgid:${message.id}`;
+          } else {
+            gmailUrl = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`;
+          }
         }
         
         await upsertChunksFlexible({
