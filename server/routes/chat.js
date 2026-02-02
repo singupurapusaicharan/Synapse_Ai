@@ -538,9 +538,9 @@ router.get('/session/:id', authenticateToken, async (req, res) => {
 router.post('/message', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   const question = req.body.question?.trim();
-  const sessionId = req.body.sessionId;
+  let sessionId = req.body.sessionId;
   
-  console.log(`[Query] POST /api/chat/message - user_id: ${userId}`);
+  console.log(`[Query] POST /api/chat/message - user_id: ${userId}, session_id: ${sessionId}`);
   
   try {
     if (!sessionId || !question || question.length === 0) {
@@ -549,6 +549,56 @@ router.post('/message', authenticateToken, async (req, res) => {
         error: 'sessionId and question (non-empty string) are required',
         stage: 'validation'
       });
+    }
+
+    // Check if this is an old history session (starts with "history-")
+    // If so, create a new session and copy the old messages
+    if (sessionId.startsWith('history-')) {
+      console.log(`[Query] Old history session detected: ${sessionId}, creating new session...`);
+      
+      const historyId = sessionId.replace('history-', '');
+      const userIdStr = String(userId);
+      
+      // Get the old history item
+      const historyResult = await pool.query(
+        `SELECT query_text, answer_text, citations FROM query_history
+         WHERE id = $1 AND user_id = $2`,
+        [historyId, userIdStr]
+      );
+
+      if (historyResult.rows.length === 0) {
+        return res.status(404).json({ 
+          ok: false,
+          error: 'History item not found',
+          stage: 'validation'
+        });
+      }
+
+      const historyItem = historyResult.rows[0];
+      
+      // Create a new session
+      const newSessionResult = await pool.query(
+        `INSERT INTO chat_sessions (user_id, title)
+         VALUES ($1, $2)
+         RETURNING id`,
+        [userId, historyItem.query_text.substring(0, 50)]
+      );
+      
+      const newSessionId = newSessionResult.rows[0].id;
+      console.log(`[Query] Created new session ${newSessionId} from old history ${sessionId}`);
+      
+      // Copy old messages to new session
+      await pool.query(
+        `INSERT INTO chat_messages (session_id, user_id, role, content, citations)
+         VALUES 
+           ($1, $2, 'user', $3, '[]'),
+           ($1, $2, 'assistant', $4, $5)`,
+        [newSessionId, userId, historyItem.query_text, historyItem.answer_text, JSON.stringify(historyItem.citations || [])]
+      );
+      
+      // Update sessionId to the new one
+      sessionId = newSessionId;
+      console.log(`[Query] Migrated old history to new session: ${newSessionId}`);
     }
 
     const sessionCheck = await pool.query(
@@ -1129,6 +1179,7 @@ Please provide a detailed answer based on the context above.`;
 
       res.json({
         ok: true,
+        sessionId: sessionId, // Return the session ID (might be new if migrated from old history)
         userMessage: {
           id: userMessage.id,
           role: userMessage.role,

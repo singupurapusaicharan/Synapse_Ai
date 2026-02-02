@@ -279,11 +279,21 @@ export function Dashboard() {
         const data = asRecord(response.data);
         const userMessageRaw = data?.userMessage;
         const assistantMessageRaw = data?.assistantMessage;
+        const newSessionId = typeof data?.sessionId === 'string' ? data.sessionId : null;
         const userMessageRec = asRecord(userMessageRaw);
         const assistantMessageRec = asRecord(assistantMessageRaw);
         if (!userMessageRec || !assistantMessageRec) {
           throw new Error('Invalid server response');
         }
+        
+        // If server returned a new sessionId (migrated from old history), update it
+        if (newSessionId && newSessionId !== sessionId) {
+          console.log(`[Dashboard] Session migrated from ${sessionId} to ${newSessionId}`);
+          setCurrentSessionId(newSessionId);
+          // Update URL to reflect new session
+          window.history.replaceState({}, '', `/?session=${newSessionId}`);
+        }
+        
         // Add user message (if not already added)
         const userMsg: Message = {
           id: String(userMessageRec.id),
