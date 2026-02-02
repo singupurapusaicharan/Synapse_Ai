@@ -1074,6 +1074,11 @@ Please provide a detailed answer based on the context above.`;
               source: chunk.source_type, // Frontend expects 'source', not 'sourceType'
               title: title,
               url: deepLink,
+              // Mobile-specific fields for Gmail app deep linking
+              subject: metadata.subject || null,
+              fromName: metadata.fromName || metadata.from || null,
+              fromEmail: metadata.fromEmail || null,
+              dateISO: metadata.dateISO || metadata.date || null,
               // Back-compat field (existing clients)
               messageId: chunk.source_item_id || null,
               // New structured fields for secure, reusable deep linking
@@ -1081,8 +1086,6 @@ Please provide a detailed answer based on the context above.`;
               threadId: threadId || null,
               accountEmail: ownerEmail || null,
               score: chunk.similarity,
-              fromName: metadata.fromName || metadata.from || null,
-              dateISO: metadata.dateISO || metadata.date || null,
               snippet: chunk.chunk_text?.substring(0, 150) + (chunk.chunk_text?.length > 150 ? '...' : '')
             };
             

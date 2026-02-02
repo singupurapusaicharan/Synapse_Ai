@@ -28,6 +28,9 @@ const sourceColors: Record<SourceType | 'unknown', string> = {
 export function CitationsList({ citations, compact = false }: CitationsListProps) {
   const { toast } = useToast();
 
+  // Detect if user is on mobile device
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
   if (citations.length === 0) return null;
 
   return (
@@ -37,29 +40,46 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
         const Icon = sourceIcons[source] || sourceIcons.unknown;
         const colorClass = sourceColors[source] || sourceColors.unknown;
 
-        // Gmail: use the URL provided by backend (already contains correct deep link)
+        // Gmail: use mobile-optimized URL on mobile devices
         if (source === 'gmail') {
-          // Backend provides the complete deep link in citation.url
-          const deepLink = citation.url && citation.url !== '#' ? citation.url : null;
+          let finalLink = citation.url && citation.url !== '#' ? citation.url : null;
           
-          // Fallback to building from IDs if URL not provided
-          const builtLink = !deepLink ? buildGmailDeepLinkUrl({
-            providerMessageId: citation.providerMessageId,
-            threadId: citation.threadId,
-            accountEmail: citation.accountEmail,
-          }) : null;
+          // On mobile, if we have subject, create a better search URL
+          if (isMobile && citation.subject) {
+            // Mobile Gmail app works better with simple search URLs
+            const subject = citation.subject.trim();
+            const encodedSubject = encodeURIComponent(subject);
+            
+            // Try multiple URL formats for maximum compatibility
+            // Format 1: Gmail app intent (Android)
+            if (/Android/i.test(navigator.userAgent)) {
+              finalLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
+            } 
+            // Format 2: iOS Gmail app
+            else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+              finalLink = `googlegmail://search?q=${encodedSubject}`;
+            }
+            // Format 3: Fallback to web
+            else {
+              finalLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
+            }
+          }
           
-          const finalLink = deepLink || builtLink;
           const fallbackUrl = buildGmailInboxUrl(citation.accountEmail);
 
           const handleClick = (e: React.MouseEvent) => {
-            // Always handle click ourselves to enforce deep linking and provide graceful fallback messaging.
             e.preventDefault();
             e.stopPropagation();
 
             const targetUrl = finalLink || fallbackUrl;
-            console.log('[Citation Click] Opening Gmail URL:', targetUrl);
-            window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            console.log('[Citation Click] Mobile:', isMobile, 'Opening Gmail URL:', targetUrl);
+            
+            // On mobile, try to open in Gmail app first, fallback to browser
+            if (isMobile) {
+              window.location.href = targetUrl;
+            } else {
+              window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            }
 
             if (!finalLink) {
               toast({
