@@ -289,56 +289,74 @@ router.get('/sessions', authenticateToken, async (req, res) => {
   console.log(`[API] GET /api/chat/sessions - user_id: ${userId}`);
   
   try {
-    // Get new chat sessions (with messages)
-    const sessionsResult = await pool.query(
-      `WITH latest_messages AS (
+    // Get new chat sessions (with messages) with error handling
+    let sessionsResult;
+    try {
+      sessionsResult = await pool.query(
+        `WITH latest_messages AS (
+          SELECT 
+            session_id,
+            content,
+            created_at,
+            ROW_NUMBER() OVER (PARTITION BY session_id ORDER BY created_at DESC) as rn
+          FROM chat_messages
+          WHERE user_id = $1
+        )
         SELECT 
-          session_id,
-          content,
-          created_at,
-          ROW_NUMBER() OVER (PARTITION BY session_id ORDER BY created_at DESC) as rn
-        FROM chat_messages
-        WHERE user_id = $1
-      )
-      SELECT 
-        cs.id,
-        cs.user_id,
-        COALESCE(cs.title, 'New Chat') as title,
-        cs.created_at,
-        (SELECT COUNT(*) FROM chat_messages WHERE session_id = cs.id) as message_count,
-        lm.content as last_message_preview
-      FROM chat_sessions cs
-      LEFT JOIN latest_messages lm ON cs.id = lm.session_id AND lm.rn = 1
-      WHERE cs.user_id = $1
-      ORDER BY cs.created_at DESC`,
-      [userId]
-    );
+          cs.id,
+          cs.user_id,
+          COALESCE(cs.title, 'New Chat') as title,
+          cs.created_at,
+          (SELECT COUNT(*) FROM chat_messages WHERE session_id = cs.id) as message_count,
+          lm.content as last_message_preview
+        FROM chat_sessions cs
+        LEFT JOIN latest_messages lm ON cs.id = lm.session_id AND lm.rn = 1
+        WHERE cs.user_id = $1
+        ORDER BY cs.created_at DESC`,
+        [userId]
+      );
+    } catch (dbError) {
+      console.error(`[API] Database error fetching sessions for user ${userId}:`, dbError);
+      return res.status(500).json({ error: 'Database error accessing sessions' });
+    }
 
-    // Also get old query history (for backward compatibility)
+    // Also get old query history (for backward compatibility) with error handling
     const userIdStr = String(userId);
-    const historyResult = await pool.query(
-      `SELECT 
-        id,
-        query_text,
-        answer_text,
-        created_at
-       FROM query_history
-       WHERE user_id = $1
-       ORDER BY created_at DESC
-       LIMIT 50`,
-      [userIdStr]
-    );
+    let historyResult;
+    try {
+      historyResult = await pool.query(
+        `SELECT 
+          id,
+          query_text,
+          answer_text,
+          created_at
+         FROM query_history
+         WHERE user_id = $1
+         ORDER BY created_at DESC
+         LIMIT 50`,
+        [userIdStr]
+      );
+    } catch (dbError) {
+      console.warn(`[API] Database error fetching history for user ${userId}:`, dbError);
+      // Continue without old history if there's an error
+      historyResult = { rows: [] };
+    }
 
-    // Convert old history to session format
-    const oldHistorySessions = historyResult.rows.map(row => ({
-      id: `history-${row.id}`,
-      user_id: userId,
-      title: row.query_text.length > 50 ? row.query_text.substring(0, 50) + '...' : row.query_text,
-      created_at: row.created_at,
-      message_count: 2, // Question + answer
-      last_message_preview: row.answer_text?.substring(0, 100) || null,
-      is_old_history: true
-    }));
+    // Convert old history to session format with safe data handling
+    const oldHistorySessions = historyResult.rows.map(row => {
+      const queryText = row.query_text || 'Untitled Query';
+      const answerText = row.answer_text || '';
+      
+      return {
+        id: `history-${row.id}`,
+        user_id: userId,
+        title: queryText.length > 50 ? queryText.substring(0, 50) + '...' : queryText,
+        created_at: row.created_at,
+        message_count: 2, // Question + answer
+        last_message_preview: answerText.length > 100 ? answerText.substring(0, 100) + '...' : answerText,
+        is_old_history: true
+      };
+    });
 
     // Combine both and sort by date
     const allSessions = [...sessionsResult.rows, ...oldHistorySessions]
@@ -365,19 +383,57 @@ router.get('/session/:id', authenticateToken, async (req, res) => {
       const historyId = sessionId.replace('history-', '');
       const userIdStr = String(userId);
       
-      // Get the old query history item
-      const historyResult = await pool.query(
-        `SELECT id, query_text, answer_text, citations, created_at
-         FROM query_history
-         WHERE id = $1 AND user_id = $2`,
-        [historyId, userIdStr]
-      );
+      // Validate historyId format (support both UUID and integer for backward compatibility)
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(historyId);
+      const isInteger = /^\d+$/.test(historyId);
+      
+      if (!isUuid && !isInteger) {
+        return res.status(400).json({ 
+          error: 'Invalid history ID format',
+          isOldHistory: true 
+        });
+      }
+      
+      console.log(`[API] Fetching old history item: ${historyId} (${isUuid ? 'UUID' : 'Integer'}) for user: ${userIdStr}`);
+      let historyResult;
+      try {
+        // Use appropriate parameter based on ID type
+        const queryParam = isInteger ? parseInt(historyId, 10) : historyId;
+        historyResult = await pool.query(
+          `SELECT id, query_text, answer_text, citations, created_at
+           FROM query_history
+           WHERE id = $1 AND user_id = $2`,
+          [queryParam, userIdStr]
+        );
+      } catch (dbError) {
+        console.error(`[API] Database error fetching history ${historyId}:`, dbError);
+        return res.status(500).json({ 
+          error: 'Database error accessing history',
+          isOldHistory: true 
+        });
+      }
 
       if (historyResult.rows.length === 0) {
-        return res.status(404).json({ error: 'History item not found' });
+        return res.status(404).json({ 
+          error: 'History item not found or access denied',
+          isOldHistory: true 
+        });
       }
 
       const item = historyResult.rows[0];
+      
+      // Safely parse citations
+      let citations = [];
+      try {
+        if (item.citations) {
+          citations = typeof item.citations === 'string' 
+            ? JSON.parse(item.citations) 
+            : item.citations;
+        }
+      } catch (parseError) {
+        console.warn(`[API] Failed to parse citations for history ${historyId}:`, parseError);
+        citations = [];
+      }
       
       // Convert to message format
       const messages = [
@@ -385,7 +441,7 @@ router.get('/session/:id', authenticateToken, async (req, res) => {
           id: `${item.id}-user`,
           session_id: sessionId,
           role: 'user',
-          content: item.query_text,
+          content: item.query_text || '',
           citations: [],
           timestamp: item.created_at,
         },
@@ -393,8 +449,8 @@ router.get('/session/:id', authenticateToken, async (req, res) => {
           id: `${item.id}-assistant`,
           session_id: sessionId,
           role: 'assistant',
-          content: item.answer_text,
-          citations: item.citations ? (typeof item.citations === 'string' ? JSON.parse(item.citations) : item.citations) : [],
+          content: item.answer_text || '',
+          citations: citations,
           timestamp: item.created_at,
         }
       ];
@@ -407,39 +463,66 @@ router.get('/session/:id', authenticateToken, async (req, res) => {
       });
     }
 
-    // Regular session lookup
-    const sessionCheck = await pool.query(
-      'SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2',
-      [sessionId, userId]
-    );
-
-    if (sessionCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Session not found' });
+    // Regular session lookup with error handling
+    let sessionCheck;
+    try {
+      sessionCheck = await pool.query(
+        'SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2',
+        [sessionId, userId]
+      );
+    } catch (dbError) {
+      console.error(`[API] Database error checking session ${sessionId}:`, dbError);
+      return res.status(500).json({ error: 'Database error accessing session' });
     }
 
-    const messagesResult = await pool.query(
-      `SELECT 
-        id,
-        session_id,
-        user_id,
-        role,
-        content,
-        citations,
-        created_at
-       FROM chat_messages
-       WHERE session_id = $1
-       ORDER BY created_at ASC`,
-      [sessionId]
-    );
+    if (sessionCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Session not found or access denied' });
+    }
 
-    const messages = messagesResult.rows.map(row => ({
-      id: row.id,
-      session_id: row.session_id,
-      role: row.role,
-      content: row.content,
-      citations: row.citations ? (typeof row.citations === 'string' ? JSON.parse(row.citations) : row.citations) : [],
-      timestamp: row.created_at,
-    }));
+    let messagesResult;
+    try {
+      messagesResult = await pool.query(
+        `SELECT 
+          id,
+          session_id,
+          user_id,
+          role,
+          content,
+          citations,
+          created_at
+         FROM chat_messages
+         WHERE session_id = $1
+         ORDER BY created_at ASC`,
+        [sessionId]
+      );
+    } catch (dbError) {
+      console.error(`[API] Database error fetching messages for session ${sessionId}:`, dbError);
+      return res.status(500).json({ error: 'Database error accessing messages' });
+    }
+
+    const messages = messagesResult.rows.map(row => {
+      // Safely parse citations
+      let citations = [];
+      try {
+        if (row.citations) {
+          citations = typeof row.citations === 'string' 
+            ? JSON.parse(row.citations) 
+            : row.citations;
+        }
+      } catch (parseError) {
+        console.warn(`[API] Failed to parse citations for message ${row.id}:`, parseError);
+        citations = [];
+      }
+
+      return {
+        id: row.id,
+        session_id: row.session_id,
+        role: row.role,
+        content: row.content || '',
+        citations: citations,
+        timestamp: row.created_at,
+      };
+    });
 
     res.json({
       sessionId,
@@ -1079,19 +1162,40 @@ router.delete('/session/:id', authenticateToken, async (req, res) => {
   console.log(`[API] DELETE /api/chat/session/${sessionId} - user_id: ${userId}`);
   
   try {
-    const sessionCheck = await pool.query(
-      'SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2',
-      [sessionId, userId]
-    );
-
-    if (sessionCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'Session not found' });
+    // Check if this is an old history session (read-only, cannot be deleted)
+    if (sessionId.startsWith('history-')) {
+      return res.status(400).json({ 
+        error: 'Cannot delete old history items. They are read-only.',
+        isOldHistory: true 
+      });
     }
 
-    await pool.query(
-      'DELETE FROM chat_sessions WHERE id = $1 AND user_id = $2',
-      [sessionId, userId]
-    );
+    // Check if session exists and belongs to user
+    let sessionCheck;
+    try {
+      sessionCheck = await pool.query(
+        'SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2',
+        [sessionId, userId]
+      );
+    } catch (dbError) {
+      console.error(`[API] Database error checking session ${sessionId} for deletion:`, dbError);
+      return res.status(500).json({ error: 'Database error accessing session' });
+    }
+
+    if (sessionCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Session not found or access denied' });
+    }
+
+    // Delete the session (messages will be cascade deleted if foreign key is set up properly)
+    try {
+      await pool.query(
+        'DELETE FROM chat_sessions WHERE id = $1 AND user_id = $2',
+        [sessionId, userId]
+      );
+    } catch (dbError) {
+      console.error(`[API] Database error deleting session ${sessionId}:`, dbError);
+      return res.status(500).json({ error: 'Database error deleting session' });
+    }
 
     res.json({
       message: 'Session deleted successfully',
@@ -1099,6 +1203,42 @@ router.delete('/session/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Delete session error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.get('/health/history', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  const userIdStr = String(userId);
+  
+  try {
+    // Check if query_history table exists and is accessible
+    const historyCount = await pool.query(
+      `SELECT COUNT(*) as count FROM query_history WHERE user_id = $1`,
+      [userIdStr]
+    );
+    
+    // Check if chat_sessions table exists and is accessible
+    const sessionsCount = await pool.query(
+      `SELECT COUNT(*) as count FROM chat_sessions WHERE user_id = $1`,
+      [userId]
+    );
+    
+    res.json({
+      status: 'ok',
+      user_id: userId,
+      user_id_str: userIdStr,
+      old_history_count: parseInt(historyCount.rows[0]?.count || 0),
+      new_sessions_count: parseInt(sessionsCount.rows[0]?.count || 0),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('History health check error:', error);
+    res.status(500).json({ 
+      status: 'error',
+      error: error.message,
+      user_id: userId,
+      user_id_str: userIdStr
+    });
   }
 });
 

@@ -595,7 +595,8 @@ export function Sources() {
                         <div className="relative mt-4 pt-4 border-t border-border/50 flex items-center gap-2 text-xs text-muted-foreground">
                           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10">
                             <Check className="w-3.5 h-3.5 text-accent flex-shrink-0" />
-                          <span className="truncate">Last synced: {new Date(sourceStatus.last_synced_at).toLocaleString()}</span>
+                            <span className="truncate">Last synced: {new Date(sourceStatus.last_synced_at).toLocaleString()}</span>
+                          </div>
                         </div>
                       )}
                     </div>
