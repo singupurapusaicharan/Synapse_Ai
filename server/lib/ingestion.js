@@ -385,22 +385,18 @@ export async function ingestGmail(userId) {
         // Store all chunks (user_id must be UUID)
         console.log(`[Gmail Ingestion] BEFORE insertion: Message ${message.id} - ${chunks.length} chunks (embedded: ${embeddings.filter(Boolean).length})`);
         
-        // Build Gmail URL - prioritize thread ID (opens email directly), fallback to search
+        // Build Gmail URL - MOBILE-FRIENDLY FORMAT
+        // Priority: Subject search (most reliable on mobile) > Thread ID > Message ID
         let gmailUrl;
-        if (msg.threadId && ownerEmail) {
-          // Use thread ID with account email - opens the email directly
-          gmailUrl = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#all/${msg.threadId}`;
+        if (subject && subject.trim()) {
+          // BEST: Subject search - works on mobile apps, desktop, and web
+          const encodedSubject = encodeURIComponent(`subject:"${subject.trim()}"`);
+          gmailUrl = `https://mail.google.com/mail/u/0/#search/${encodedSubject}+in:anywhere`;
         } else if (msg.threadId) {
-          // Use thread ID without account email
+          // GOOD: Thread ID - works well on most platforms
           gmailUrl = `https://mail.google.com/mail/u/0/#all/${msg.threadId}`;
-        } else if (subject && ownerEmail) {
-          // Fallback: subject search with account email
-          gmailUrl = `https://mail.google.com/mail/?authuser=${encodeURIComponent(ownerEmail)}#search/${encodeURIComponent('"' + subject + '"')}`;
-        } else if (subject) {
-          // Fallback: subject search without account email
-          gmailUrl = `https://mail.google.com/mail/u/0/#search/${encodeURIComponent('"' + subject + '"')}`;
         } else {
-          // Last resort: message ID search
+          // FALLBACK: Message ID search
           gmailUrl = `https://mail.google.com/mail/u/0/#search/rfc822msgid:${message.id}`;
         }
         
