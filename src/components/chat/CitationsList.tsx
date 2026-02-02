@@ -40,48 +40,26 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
         const Icon = sourceIcons[source] || sourceIcons.unknown;
         const colorClass = sourceColors[source] || sourceColors.unknown;
 
-        // Gmail: SIMPLE SOLUTION - Just open Gmail inbox on mobile
-        // Gmail mobile deep linking is unreliable, so we'll open inbox
-        // and show email details in a tooltip/preview
+        // Gmail: Open directly on click
         if (source === 'gmail') {
           let finalLink = citation.url && citation.url !== '#' ? citation.url : null;
           
-          // MOBILE: Just open Gmail inbox - deep linking doesn't work reliably
-          if (isMobile) {
-            // Simple inbox URL - always works
-            if (citation.accountEmail) {
-              finalLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(citation.accountEmail)}`;
-            } else {
-              finalLink = `https://mail.google.com/mail/u/0/`;
-            }
-            
-            console.log('[Citation Mobile] Opening Gmail inbox (deep linking unreliable)');
+          // Use the URL provided by backend (works on both mobile and desktop)
+          if (!finalLink) {
+            finalLink = buildGmailInboxUrl(citation.accountEmail);
           }
-          
-          const fallbackUrl = buildGmailInboxUrl(citation.accountEmail);
 
           const handleClick = (e: React.MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
 
-            const targetUrl = finalLink || fallbackUrl;
+            console.log('[Citation Click] Opening Gmail:', finalLink);
             
-            // On mobile, show email details in toast before opening Gmail
-            if (isMobile && citation.subject) {
-              toast({
-                title: citation.subject,
-                description: `From: ${citation.fromName || 'Unknown'}\nDate: ${citation.dateISO || 'Unknown'}\n\nOpening Gmail inbox - search for this subject to find the email.`,
-                duration: 8000,
-              });
-            }
-            
-            console.log('[Citation Click] Mobile:', isMobile, 'Opening:', targetUrl);
-            
-            // Open Gmail
+            // Open Gmail directly - works on both mobile and desktop
             if (isMobile) {
-              window.location.href = targetUrl;
+              window.location.href = finalLink;
             } else {
-              window.open(targetUrl, '_blank', 'noopener,noreferrer');
+              window.open(finalLink, '_blank', 'noopener,noreferrer');
             }
           };
 
