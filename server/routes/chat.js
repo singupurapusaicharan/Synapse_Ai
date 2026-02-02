@@ -289,7 +289,8 @@ router.get('/sessions', authenticateToken, async (req, res) => {
   console.log(`[API] GET /api/chat/sessions - user_id: ${userId}`);
   
   try {
-    const result = await pool.query(
+    // Get new chat sessions (with messages)
+    const sessionsResult = await pool.query(
       `WITH latest_messages AS (
         SELECT 
           session_id,
@@ -313,9 +314,39 @@ router.get('/sessions', authenticateToken, async (req, res) => {
       [userId]
     );
 
+    // Also get old query history (for backward compatibility)
+    const userIdStr = String(userId);
+    const historyResult = await pool.query(
+      `SELECT 
+        id,
+        query_text,
+        answer_text,
+        created_at
+       FROM query_history
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [userIdStr]
+    );
+
+    // Convert old history to session format
+    const oldHistorySessions = historyResult.rows.map(row => ({
+      id: `history-${row.id}`,
+      user_id: userId,
+      title: row.query_text.length > 50 ? row.query_text.substring(0, 50) + '...' : row.query_text,
+      created_at: row.created_at,
+      message_count: 2, // Question + answer
+      last_message_preview: row.answer_text?.substring(0, 100) || null,
+      is_old_history: true
+    }));
+
+    // Combine both and sort by date
+    const allSessions = [...sessionsResult.rows, ...oldHistorySessions]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
     res.json({
-      sessions: result.rows,
-      count: result.rows.length,
+      sessions: allSessions,
+      count: allSessions.length,
     });
   } catch (error) {
     console.error('Get sessions error:', error);
