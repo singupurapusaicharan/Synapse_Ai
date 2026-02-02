@@ -124,7 +124,6 @@ export function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [hasSources, setHasSources] = useState(false);
   const [checkingSources, setCheckingSources] = useState(true);
-  const [isOldHistory, setIsOldHistory] = useState(false);
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -200,7 +199,6 @@ export function Dashboard() {
       if (sessionRow?.id) {
         setCurrentSessionId(sessionRow.id);
         setMessages([]);
-        setIsOldHistory(false);
         toast({
           title: 'New chat started',
           description: 'You can now start asking questions.',
@@ -274,19 +272,6 @@ export function Dashboard() {
       const response = await apiClient.postChatMessage(sessionId!, content);
       
       if (response.error) {
-        // Check if this is an old history session error
-        const data = asRecord(response.data);
-        if (data?.isOldHistory) {
-          toast({
-            title: 'Cannot edit old history',
-            description: 'This is a read-only chat from your history. Please start a new chat to ask questions.',
-            variant: 'destructive',
-          });
-          // Remove user message
-          setMessages((prev) => prev.filter(m => m.id !== userMessage.id));
-          setIsLoading(false);
-          return;
-        }
         throw new Error(response.error);
       }
 
@@ -368,10 +353,8 @@ export function Dashboard() {
           const sid = typeof data?.sessionId === 'string' ? data.sessionId : null;
           const msgsRaw = data?.messages;
           const msgs = Array.isArray(msgsRaw) ? msgsRaw.filter(isApiChatMessageRow) : [];
-          const isOld = data?.isOldHistory === true;
           if (sid) {
             setCurrentSessionId(sid);
-            setIsOldHistory(isOld);
             const loadedMessages = msgs.map((msg) => ({
               id: msg.id,
               role: msg.role,
@@ -390,7 +373,6 @@ export function Dashboard() {
           if (sessions.length > 0) {
             const latestSession = sessions[0];
             setCurrentSessionId(latestSession.id);
-            setIsOldHistory(false);
             const sessionResponse = await apiClient.getChatSession(latestSession.id);
             const data = asRecord(sessionResponse.data);
             const msgsRaw = data?.messages;
@@ -495,7 +477,11 @@ export function Dashboard() {
   // Authenticated dashboard view
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <Navbar onNavigate={handleNavigate} />
+      <Navbar 
+        onNavigate={handleNavigate} 
+        onNewChat={handleNewChat}
+        showNewChat={true}
+      />
 
       <div className="flex-1 flex min-h-0 overflow-hidden">
         <Sidebar
@@ -515,7 +501,6 @@ export function Dashboard() {
             onNewChat={handleNewChat}
             onNavigateToSources={() => navigate('/sources')}
             userEmail={user?.email || ''}
-            isOldHistory={isOldHistory}
           />
         </div>
       </div>

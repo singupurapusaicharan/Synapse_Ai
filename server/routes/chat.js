@@ -551,16 +551,6 @@ router.post('/message', authenticateToken, async (req, res) => {
       });
     }
 
-    // Check if this is an old history session (read-only)
-    if (sessionId.startsWith('history-')) {
-      return res.status(400).json({ 
-        ok: false,
-        error: 'Cannot add messages to old history. Please start a new chat session.',
-        stage: 'validation',
-        isOldHistory: true
-      });
-    }
-
     const sessionCheck = await pool.query(
       'SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2',
       [sessionId, userId]

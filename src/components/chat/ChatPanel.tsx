@@ -14,7 +14,6 @@ interface ChatPanelProps {
   userEmail?: string;
   onNewChat?: () => void;
   onNavigateToSources?: () => void;
-  isOldHistory?: boolean;
 }
 
 export function ChatPanel({ 
@@ -24,8 +23,7 @@ export function ChatPanel({
   hasSources = false,
   userEmail,
   onNewChat,
-  onNavigateToSources,
-  isOldHistory = false
+  onNavigateToSources 
 }: ChatPanelProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
@@ -89,28 +87,16 @@ export function ChatPanel({
 
       {/* Input - Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-border/30 bg-background">
-        {isOldHistory ? (
-          <div className="p-4 text-center text-sm text-muted-foreground bg-secondary/20">
-            This is a read-only chat from your history. 
-            <button 
-              onClick={onNewChat}
-              className="ml-2 text-primary hover:underline font-medium"
-            >
-              Start a new chat
-            </button>
-          </div>
-        ) : (
-          <MessageInput
-            onSend={(content) => {
-              onSendMessage(content);
-              setDraft('');
-            }}
-            disabled={isLoading || !hasSources}
-            value={draft}
-            onValueChange={setDraft}
-            textareaRef={inputRef}
-          />
-        )}
+        <MessageInput
+          onSend={(content) => {
+            onSendMessage(content);
+            setDraft('');
+          }}
+          disabled={isLoading || !hasSources}
+          value={draft}
+          onValueChange={setDraft}
+          textareaRef={inputRef}
+        />
       </div>
     </div>
   );

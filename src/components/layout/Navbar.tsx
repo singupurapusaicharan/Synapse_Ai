@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut, History, Settings, ChevronDown, Sparkles, Menu, X, MessageSquare, Database } from 'lucide-react';
+import { User, LogOut, History, Settings, ChevronDown, Sparkles, Menu, X, MessageSquare, Database, Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,9 +16,11 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface NavbarProps {
   onNavigate?: (path: string) => void;
+  onNewChat?: () => void;
+  showNewChat?: boolean;
 }
 
-export function Navbar({ onNavigate }: NavbarProps) {
+export function Navbar({ onNavigate, onNewChat, showNewChat = false }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
@@ -70,6 +72,23 @@ export function Navbar({ onNavigate }: NavbarProps) {
                     <span className="text-xl font-semibold">Synapse</span>
                   </div>
                 </div>
+                
+                {/* New Chat Button - Mobile Only */}
+                {showNewChat && onNewChat && (
+                  <div className="p-4 border-b border-border/30">
+                    <Button
+                      onClick={() => {
+                        onNewChat();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full h-10 bg-primary/10 border border-primary/20 hover:bg-primary/15 hover:border-primary/30 text-primary rounded-lg font-medium transition-all duration-300"
+                      size="sm"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      New Chat
+                    </Button>
+                  </div>
+                )}
                 
                 <nav className="flex-1 p-4 space-y-2">
                   <Button
