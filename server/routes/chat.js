@@ -360,6 +360,54 @@ router.get('/session/:id', authenticateToken, async (req, res) => {
   console.log(`[API] GET /api/chat/session/${sessionId} - user_id: ${userId}`);
   
   try {
+    // Check if this is an old history item (starts with "history-")
+    if (sessionId.startsWith('history-')) {
+      const historyId = sessionId.replace('history-', '');
+      const userIdStr = String(userId);
+      
+      // Get the old query history item
+      const historyResult = await pool.query(
+        `SELECT id, query_text, answer_text, citations, created_at
+         FROM query_history
+         WHERE id = $1 AND user_id = $2`,
+        [historyId, userIdStr]
+      );
+
+      if (historyResult.rows.length === 0) {
+        return res.status(404).json({ error: 'History item not found' });
+      }
+
+      const item = historyResult.rows[0];
+      
+      // Convert to message format
+      const messages = [
+        {
+          id: `${item.id}-user`,
+          session_id: sessionId,
+          role: 'user',
+          content: item.query_text,
+          citations: [],
+          timestamp: item.created_at,
+        },
+        {
+          id: `${item.id}-assistant`,
+          session_id: sessionId,
+          role: 'assistant',
+          content: item.answer_text,
+          citations: item.citations ? (typeof item.citations === 'string' ? JSON.parse(item.citations) : item.citations) : [],
+          timestamp: item.created_at,
+        }
+      ];
+
+      return res.json({
+        sessionId,
+        messages,
+        count: messages.length,
+        isOldHistory: true
+      });
+    }
+
+    // Regular session lookup
     const sessionCheck = await pool.query(
       'SELECT id FROM chat_sessions WHERE id = $1 AND user_id = $2',
       [sessionId, userId]

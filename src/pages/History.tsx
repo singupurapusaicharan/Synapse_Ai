@@ -159,29 +159,37 @@ export function History() {
 
         <main className="flex-1 p-4 sm:p-6 lg:p-10 overflow-auto">
           <div className="max-w-3xl mx-auto">
-            <h1 className="text-xl sm:text-2xl font-semibold mb-2">Chat History</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Chat History
+            </h1>
             <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
-              Your past conversations and chat sessions.
+              Your past conversations and chat sessions
             </p>
 
             {loading ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mx-auto mb-4 animate-pulse">
-                  <Clock className="w-8 h-8 text-muted-foreground" />
+              <div className="text-center py-20">
+                <div className="relative w-20 h-20 mx-auto mb-6">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-primary/40 animate-pulse"></div>
+                  <div className="absolute inset-2 rounded-full bg-background flex items-center justify-center">
+                    <Clock className="w-8 h-8 text-primary animate-spin" style={{ animationDuration: '3s' }} />
+                  </div>
                 </div>
-                <p className="text-muted-foreground">Loading sessions...</p>
+                <p className="text-muted-foreground font-medium">Loading your conversations...</p>
               </div>
             ) : sessions.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-8 h-8 text-muted-foreground" />
+              <div className="text-center py-20">
+                <div className="relative w-20 h-20 mx-auto mb-6">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/10 to-primary/20"></div>
+                  <div className="absolute inset-2 rounded-full bg-background flex items-center justify-center">
+                    <MessageSquare className="w-8 h-8 text-primary" />
+                  </div>
                 </div>
-                <p className="text-muted-foreground mb-2">No chat sessions yet</p>
-                <p className="text-sm text-muted-foreground">
-                  Start a new chat to see your conversations here.
+                <p className="text-lg font-semibold mb-2">No conversations yet</p>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Start your first chat to see your history here
                 </p>
                 <Button
-                  className="mt-6"
+                  className="mt-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
                   onClick={() => navigate('/')}
                 >
                   Start New Chat
@@ -193,46 +201,55 @@ export function History() {
                   <div
                     key={session.id}
                     onClick={() => handleSessionClick(session.id)}
-                    className="p-3 sm:p-4 rounded-xl glass-card group transition-all duration-300 hover:border-primary/20 cursor-pointer"
+                    className="group relative p-4 sm:p-5 rounded-2xl glass-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 cursor-pointer overflow-hidden"
                   >
-                    <div className="flex items-start justify-between gap-2 sm:gap-4">
-                      <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 flex items-center justify-center mt-0.5 flex-shrink-0">
-                          <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                    {/* Gradient background on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    
+                    <div className="relative flex items-start justify-between gap-3 sm:gap-4">
+                      <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+                        {/* Icon with gradient */}
+                        <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                          <MessageSquare className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-primary" />
+                          {/* Pulse effect on hover */}
+                          <div className="absolute inset-0 rounded-xl bg-primary/20 opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
                         </div>
+                        
                         <div className="flex-1 min-w-0">
-                          <div className="w-full">
-                            <p className="font-medium text-xs sm:text-sm leading-relaxed truncate">
-                              {session.title || 'New Chat'}
+                          {/* Title with gradient on hover */}
+                          <p className="font-semibold text-sm sm:text-base leading-relaxed truncate group-hover:text-primary transition-colors duration-300">
+                            {session.title || 'New Chat'}
+                          </p>
+                          
+                          {/* Preview text */}
+                          {session.last_message_preview && (
+                            <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
+                              {session.last_message_preview}
                             </p>
-                            {session.last_message_preview && (
-                              <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-1">
-                                {session.last_message_preview}
-                              </p>
-                            )}
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2">
-                              <span className="text-[10px] sm:text-xs text-muted-foreground">
-                                {formatDate(session.created_at)}
-                              </span>
-                              <span className="text-[10px] sm:text-xs text-muted-foreground">
-                                {formatTimeAgo(session.created_at)}
-                              </span>
-                              {session.message_count > 0 && (
-                                <span className="text-[10px] sm:text-xs text-muted-foreground">
-                                  {session.message_count} {session.message_count === 1 ? 'message' : 'messages'}
-                                </span>
-                              )}
-                            </div>
+                          )}
+                          
+                          {/* Metadata with icons */}
+                          <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3">
+                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Clock className="w-3.5 h-3.5" />
+                              {formatDate(session.created_at)}
+                            </span>
+                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              {session.message_count} {session.message_count === 1 ? 'message' : 'messages'}
+                            </span>
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Delete button with hover effect */}
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={(e) => handleDelete(session.id, e)}
-                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive h-8 w-8 p-0 flex-shrink-0"
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-9 w-9 p-0 flex-shrink-0 rounded-lg"
                       >
-                        <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
