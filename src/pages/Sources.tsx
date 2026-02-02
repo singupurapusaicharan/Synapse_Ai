@@ -442,58 +442,98 @@ export function Sources() {
         />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-10 overflow-auto">
-          <div className="max-w-3xl mx-auto">
-            <h1 className="text-xl sm:text-2xl font-semibold mb-2">Connected Sources</h1>
-            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
-              Manage your data sources to search across all your content.
-            </p>
+          <div className="max-w-4xl mx-auto">
+            {/* Header with gradient */}
+            <div className="mb-8 sm:mb-10">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-3 bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+                Data Sources
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Connect and manage your data sources to unlock AI-powered search across all your content
+              </p>
+            </div>
 
             {loading ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mx-auto mb-4 animate-pulse">
-                  <Database className="w-8 h-8 text-muted-foreground" />
+              <div className="text-center py-20">
+                <div className="relative w-20 h-20 mx-auto mb-6">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 animate-pulse"></div>
+                  <div className="absolute inset-2 rounded-full bg-background flex items-center justify-center">
+                    <Database className="w-8 h-8 text-primary animate-spin" style={{ animationDuration: '3s' }} />
+                  </div>
                 </div>
-                <p className="text-muted-foreground">Loading sources...</p>
+                <p className="text-muted-foreground font-medium">Loading your sources...</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid gap-4 sm:gap-5">
                 {AVAILABLE_SOURCES.map((availableSource) => {
                   const sourceStatus = getSourceStatus(availableSource.type);
                   const isConnected = sourceStatus?.status === 'connected';
                   const Icon = availableSource.icon;
+                  const isSyncing = syncing === availableSource.type;
+                  const isConnecting = connecting === availableSource.type;
 
                   return (
                     <div
                       key={availableSource.type}
                       className={cn(
-                        'p-4 sm:p-5 rounded-2xl glass-card transition-all duration-300',
-                        isConnected && 'border-primary/20'
+                        'group relative p-5 sm:p-6 rounded-2xl glass-card transition-all duration-300 overflow-hidden',
+                        isConnected 
+                          ? 'border-primary/30 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10' 
+                          : 'hover:border-primary/20 hover:shadow-md'
                       )}
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                      {/* Gradient background on hover */}
+                      <div className={cn(
+                        "absolute inset-0 bg-gradient-to-r opacity-0 transition-opacity duration-300",
+                        isConnected 
+                          ? "from-primary/5 via-accent/5 to-primary/5 group-hover:opacity-100"
+                          : "from-primary/0 via-primary/3 to-primary/0 group-hover:opacity-100"
+                      )}></div>
+
+                      <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          {/* Icon with gradient and animation */}
                           <div className={cn(
-                            'w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0',
+                            'relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300',
                             isConnected 
-                              ? 'bg-gradient-to-br from-primary/20 to-accent/20' 
-                              : 'bg-muted/50'
+                              ? 'bg-gradient-to-br from-primary/20 via-primary/15 to-accent/20 group-hover:scale-110' 
+                              : 'bg-gradient-to-br from-muted/50 to-muted/30 group-hover:scale-105'
                           )}>
                             <Icon className={cn(
-                              'w-5 h-5 sm:w-6 sm:h-6',
-                              isConnected ? 'text-primary' : 'text-muted-foreground'
+                              'w-7 h-7 sm:w-8 sm:h-8 transition-colors duration-300',
+                              isConnected ? 'text-primary' : 'text-muted-foreground group-hover:text-primary/70'
                             )} />
+                            {/* Pulse effect for connected sources */}
+                            {isConnected && (
+                              <div className="absolute inset-0 rounded-2xl bg-primary/20 opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
+                            )}
                           </div>
+
                           <div className="min-w-0 flex-1">
-                            <h3 className="font-medium text-sm sm:text-base truncate">{availableSource.name}</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground">
-                              {isConnected 
-                                ? 'Connected'
-                                : 'Not connected'
-                              }
-                            </p>
+                            <h3 className="font-semibold text-base sm:text-lg mb-1 group-hover:text-primary transition-colors duration-300">
+                              {availableSource.name}
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              {isConnected ? (
+                                <>
+                                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                  <p className="text-xs sm:text-sm text-green-600 dark:text-green-400 font-medium">
+                                    Connected & Active
+                                  </p>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="w-2 h-2 rounded-full bg-muted-foreground/50"></div>
+                                  <p className="text-xs sm:text-sm text-muted-foreground">
+                                    Not connected
+                                  </p>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
 
+                        {/* Action buttons */}
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {isConnected && (
                             <>
@@ -501,23 +541,26 @@ export function Sources() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleSync(availableSource.type)}
-                                disabled={syncing === availableSource.type}
-                                className="text-muted-foreground hover:text-foreground text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
+                                disabled={isSyncing}
+                                className={cn(
+                                  "text-muted-foreground hover:text-primary hover:bg-primary/10 text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 rounded-xl transition-all duration-300",
+                                  isSyncing && "bg-primary/10 text-primary"
+                                )}
                               >
                                 <RefreshCw className={cn(
-                                  'w-3 h-3 sm:w-4 sm:h-4 sm:mr-2',
-                                  syncing === availableSource.type && 'animate-spin'
+                                  'w-4 h-4 mr-2',
+                                  isSyncing && 'animate-spin'
                                 )} />
-                                <span className="hidden sm:inline">Sync</span>
+                                {isSyncing ? 'Syncing...' : 'Sync Now'}
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDisconnect(availableSource.type)}
-                                className="text-muted-foreground hover:text-destructive text-xs sm:text-sm h-8 sm:h-9 px-2 sm:px-3"
+                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs sm:text-sm h-9 sm:h-10 px-3 sm:px-4 rounded-xl transition-all duration-300"
                               >
-                                <X className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-                                <span className="hidden sm:inline">Disconnect</span>
+                                <X className="w-4 h-4 mr-2" />
+                                Disconnect
                               </Button>
                             </>
                           )}
@@ -525,19 +568,21 @@ export function Sources() {
                             <Button
                               size="sm"
                               onClick={() => handleConnect(availableSource.type)}
-                              disabled={connecting === availableSource.type}
-                              className="rounded-lg text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4"
+                              disabled={isConnecting}
+                              className={cn(
+                                "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-xl text-xs sm:text-sm h-9 sm:h-10 px-4 sm:px-6 transition-all duration-300 shadow-lg shadow-primary/20",
+                                isConnecting && "opacity-70"
+                              )}
                             >
-                              {connecting === availableSource.type ? (
+                              {isConnecting ? (
                                 <>
-                                  <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
-                                  <span className="hidden xs:inline">Connecting...</span>
-                                  <span className="xs:hidden">...</span>
+                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                  Connecting...
                                 </>
                               ) : (
                                 <>
-                                  <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                                  Connect
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Connect Now
                                 </>
                               )}
                             </Button>
@@ -545,9 +590,11 @@ export function Sources() {
                         </div>
                       </div>
 
+                      {/* Last synced info with better styling */}
                       {isConnected && sourceStatus?.last_synced_at && (
-                        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border/30 flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
-                          <Check className="w-3 h-3 text-accent flex-shrink-0" />
+                        <div className="relative mt-4 pt-4 border-t border-border/50 flex items-center gap-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10">
+                            <Check className="w-3.5 h-3.5 text-accent flex-shrink-0" />
                           <span className="truncate">Last synced: {new Date(sourceStatus.last_synced_at).toLocaleString()}</span>
                         </div>
                       )}

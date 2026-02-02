@@ -286,37 +286,65 @@ export function Settings() {
         />
 
         <main className="flex-1 p-4 sm:p-6 lg:p-10 overflow-auto">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-xl sm:text-2xl font-semibold mb-2">Settings</h1>
-            <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">
-              Manage your account and preferences.
-            </p>
+          <div className="max-w-3xl mx-auto">
+            {/* Header with gradient */}
+            <div className="mb-8 sm:mb-10">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-3 bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+                Settings
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Customize your experience and manage your account preferences
+              </p>
+            </div>
 
-            <div className="space-y-4 sm:space-y-6">
-              {settingsSections.map((section) => (
+            <div className="space-y-5 sm:space-y-6">
+              {settingsSections.map((section, index) => (
                 <div
                   key={section.title}
-                  className="p-4 sm:p-5 rounded-2xl glass-card"
+                  className="group relative p-5 sm:p-6 rounded-2xl glass-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 overflow-hidden"
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <section.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  {/* Gradient background on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  <div className="relative">
+                    {/* Section header with gradient icon */}
+                    <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
+                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/15 to-accent/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                        <section.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                        {/* Pulse effect on hover */}
+                        <div className="absolute inset-0 rounded-2xl bg-primary/20 opacity-0 group-hover:opacity-100 group-hover:animate-ping"></div>
+                      </div>
+                      <div>
+                        <h2 className="font-semibold text-base sm:text-lg group-hover:text-primary transition-colors duration-300">
+                          {section.title}
+                        </h2>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+                          {section.title === 'Profile' && 'Manage your personal information'}
+                          {section.title === 'Notifications' && 'Control your notification preferences'}
+                          {section.title === 'Feedback' && 'Share your thoughts with us'}
+                        </p>
+                      </div>
                     </div>
-                    <h2 className="font-semibold text-sm sm:text-base">{section.title}</h2>
+                    
+                    {/* Section content */}
+                    <div className="pl-0 sm:pl-2">
+                      {section.content}
+                    </div>
                   </div>
-                  {section.content}
                 </div>
               ))}
 
-              {/* Sign Out */}
-              <div className="pt-2 sm:pt-4">
+              {/* Sign Out button with gradient */}
+              <div className="pt-4 sm:pt-6">
                 <Button
                   variant="ghost"
                   onClick={handleSignOut}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs sm:text-sm h-9 sm:h-10"
+                  className="group relative text-destructive hover:text-destructive hover:bg-destructive/10 text-sm sm:text-base h-11 sm:h-12 px-6 rounded-xl transition-all duration-300 overflow-hidden"
                 >
-                  <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
-                  Sign Out
+                  <div className="absolute inset-0 bg-gradient-to-r from-destructive/0 via-destructive/10 to-destructive/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <LogOut className="relative w-4 h-4 sm:w-5 sm:h-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+                  <span className="relative font-medium">Sign Out</span>
                 </Button>
               </div>
             </div>
