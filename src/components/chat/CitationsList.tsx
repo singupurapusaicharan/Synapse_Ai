@@ -44,25 +44,32 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
         if (source === 'gmail') {
           let finalLink = citation.url && citation.url !== '#' ? citation.url : null;
           
-          // On mobile, if we have subject, create a better search URL
-          if (isMobile && citation.subject) {
-            // Mobile Gmail app works better with simple search URLs
-            const subject = citation.subject.trim();
-            const encodedSubject = encodeURIComponent(subject);
+          // MOBILE FIX: On mobile, use message ID directly in URL path
+          // This is the ONLY format that reliably opens specific emails on mobile
+          if (isMobile && citation.providerMessageId) {
+            // Format: https://mail.google.com/mail/u/0/#inbox/messageId
+            // This opens the specific email directly in the Gmail app
+            const messageId = citation.providerMessageId;
             
-            // Try multiple URL formats for maximum compatibility
-            // Format 1: Gmail app intent (Android)
-            if (/Android/i.test(navigator.userAgent)) {
-              finalLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
-            } 
-            // Format 2: iOS Gmail app
-            else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-              finalLink = `googlegmail://search?q=${encodedSubject}`;
+            if (citation.accountEmail) {
+              finalLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(citation.accountEmail)}#inbox/${messageId}`;
+            } else {
+              finalLink = `https://mail.google.com/mail/u/0/#inbox/${messageId}`;
             }
-            // Format 3: Fallback to web
-            else {
-              finalLink = `https://mail.google.com/mail/u/0/#search/${encodedSubject}`;
+            
+            console.log('[Citation Mobile] Using message ID URL:', finalLink);
+          }
+          // MOBILE FIX: If no message ID, try thread ID
+          else if (isMobile && citation.threadId) {
+            const threadId = citation.threadId;
+            
+            if (citation.accountEmail) {
+              finalLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(citation.accountEmail)}#inbox/${threadId}`;
+            } else {
+              finalLink = `https://mail.google.com/mail/u/0/#inbox/${threadId}`;
             }
+            
+            console.log('[Citation Mobile] Using thread ID URL:', finalLink);
           }
           
           const fallbackUrl = buildGmailInboxUrl(citation.accountEmail);
@@ -74,7 +81,8 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
             const targetUrl = finalLink || fallbackUrl;
             console.log('[Citation Click] Mobile:', isMobile, 'Opening Gmail URL:', targetUrl);
             
-            // On mobile, try to open in Gmail app first, fallback to browser
+            // On mobile, use window.location.href to let the system handle it
+            // This allows Gmail app to intercept the URL
             if (isMobile) {
               window.location.href = targetUrl;
             } else {
