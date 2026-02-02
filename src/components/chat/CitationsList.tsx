@@ -40,36 +40,22 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
         const Icon = sourceIcons[source] || sourceIcons.unknown;
         const colorClass = sourceColors[source] || sourceColors.unknown;
 
-        // Gmail: use mobile-optimized URL on mobile devices
+        // Gmail: SIMPLE SOLUTION - Just open Gmail inbox on mobile
+        // Gmail mobile deep linking is unreliable, so we'll open inbox
+        // and show email details in a tooltip/preview
         if (source === 'gmail') {
           let finalLink = citation.url && citation.url !== '#' ? citation.url : null;
           
-          // MOBILE FIX: On mobile, use message ID directly in URL path
-          // This is the ONLY format that reliably opens specific emails on mobile
-          if (isMobile && citation.providerMessageId) {
-            // Format: https://mail.google.com/mail/u/0/#inbox/messageId
-            // This opens the specific email directly in the Gmail app
-            const messageId = citation.providerMessageId;
-            
+          // MOBILE: Just open Gmail inbox - deep linking doesn't work reliably
+          if (isMobile) {
+            // Simple inbox URL - always works
             if (citation.accountEmail) {
-              finalLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(citation.accountEmail)}#inbox/${messageId}`;
+              finalLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(citation.accountEmail)}`;
             } else {
-              finalLink = `https://mail.google.com/mail/u/0/#inbox/${messageId}`;
+              finalLink = `https://mail.google.com/mail/u/0/`;
             }
             
-            console.log('[Citation Mobile] Using message ID URL:', finalLink);
-          }
-          // MOBILE FIX: If no message ID, try thread ID
-          else if (isMobile && citation.threadId) {
-            const threadId = citation.threadId;
-            
-            if (citation.accountEmail) {
-              finalLink = `https://mail.google.com/mail/u/0/?authuser=${encodeURIComponent(citation.accountEmail)}#inbox/${threadId}`;
-            } else {
-              finalLink = `https://mail.google.com/mail/u/0/#inbox/${threadId}`;
-            }
-            
-            console.log('[Citation Mobile] Using thread ID URL:', finalLink);
+            console.log('[Citation Mobile] Opening Gmail inbox (deep linking unreliable)');
           }
           
           const fallbackUrl = buildGmailInboxUrl(citation.accountEmail);
@@ -79,23 +65,23 @@ export function CitationsList({ citations, compact = false }: CitationsListProps
             e.stopPropagation();
 
             const targetUrl = finalLink || fallbackUrl;
-            console.log('[Citation Click] Mobile:', isMobile, 'Opening Gmail URL:', targetUrl);
             
-            // On mobile, use window.location.href to let the system handle it
-            // This allows Gmail app to intercept the URL
+            // On mobile, show email details in toast before opening Gmail
+            if (isMobile && citation.subject) {
+              toast({
+                title: citation.subject,
+                description: `From: ${citation.fromName || 'Unknown'}\nDate: ${citation.dateISO || 'Unknown'}\n\nOpening Gmail inbox - search for this subject to find the email.`,
+                duration: 8000,
+              });
+            }
+            
+            console.log('[Citation Click] Mobile:', isMobile, 'Opening:', targetUrl);
+            
+            // Open Gmail
             if (isMobile) {
               window.location.href = targetUrl;
             } else {
               window.open(targetUrl, '_blank', 'noopener,noreferrer');
-            }
-
-            if (!finalLink) {
-              toast({
-                title: 'Opened Gmail',
-                description:
-                  'Could not deep-link to the exact email (missing message/thread ID). Opened your inbox instead.',
-                variant: 'default',
-              });
             }
           };
 
