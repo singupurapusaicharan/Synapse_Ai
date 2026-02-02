@@ -422,59 +422,105 @@ export function Dashboard() {
   // Unauthenticated landing view
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-gradient-to-b from-background via-background to-secondary/20">
         <Navbar onNavigate={handleNavigate} />
         
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-          <div className="max-w-3xl text-center">
-            {/* Hero */}
-            <div className="relative inline-block mb-10 animate-float">
-              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center glow-primary">
-                <Sparkles className="w-12 h-12 text-primary-foreground" />
+        {/* Hero Section */}
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
+          <div className="max-w-6xl w-full">
+            <div className="text-center mb-16">
+              {/* Logo */}
+              <div className="relative inline-block mb-8 animate-float">
+                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-accent flex items-center justify-center shadow-2xl">
+                  <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-primary-foreground" />
+                </div>
               </div>
+              
+              {/* Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 animate-in">
+                Your AI-Powered
+                <span className="block mt-2 bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+                  Knowledge Assistant
+                </span>
+              </h1>
+              
+              {/* Subheadline */}
+              <p className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-in-delayed leading-relaxed">
+                Search across all your data sources with natural language. 
+                <span className="block mt-1">Synapse finds answers instantly, so you don't have to.</span>
+              </p>
+
+              {/* CTA Button */}
+              <Button 
+                size="lg" 
+                className="h-12 sm:h-14 px-8 sm:px-10 text-base sm:text-lg font-semibold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 group animate-in-delayed"
+                style={{ animationDelay: '0.2s' }}
+                onClick={() => navigate('/auth')}
+              >
+                Get Started Free
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </div>
-            
-            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight mb-5 animate-in">
-              Your AI-Powered
-              <span className="text-gradient block mt-1">Memory Assistant</span>
-            </h1>
-            <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto animate-in-delayed leading-relaxed">
-              Search across Gmail, Drive, Slack, and Notion with natural language. 
-              Synapse remembers everything so you don't have to.
-            </p>
 
-            <Button 
-              size="lg" 
-              className="mb-16 h-12 px-8 text-base font-semibold rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 glow-subtle hover:glow-primary transition-all duration-500 group animate-in-delayed"
-              style={{ animationDelay: '0.2s' }}
-              onClick={() => navigate('/auth')}
-            >
-              Get Started Free
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-
-            {/* Features */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-16">
               {[
-                { icon: MessageSquare, title: 'Natural Language Search', desc: 'Ask questions in plain English and get instant answers with citations.' },
-                { icon: Database, title: 'Connect Your Sources', desc: 'Integrate Gmail, Google Drive, Slack, and Notion in seconds.' },
-                { icon: Clock, title: 'Search History', desc: 'Access your past queries and continue conversations seamlessly.' },
-                { icon: Shield, title: 'Secure & Private', desc: 'Your data is encrypted and never shared with third parties.' },
+                { 
+                  icon: MessageSquare, 
+                  title: 'Natural Search', 
+                  desc: 'Ask questions in plain English',
+                  color: 'from-blue-500/10 to-blue-500/5'
+                },
+                { 
+                  icon: Database, 
+                  title: 'Connect Sources', 
+                  desc: 'Gmail, Drive, Slack & more',
+                  color: 'from-purple-500/10 to-purple-500/5'
+                },
+                { 
+                  icon: Clock, 
+                  title: 'Instant Results', 
+                  desc: 'Get answers in seconds',
+                  color: 'from-green-500/10 to-green-500/5'
+                },
+                { 
+                  icon: Shield, 
+                  title: 'Secure & Private', 
+                  desc: 'Your data stays yours',
+                  color: 'from-orange-500/10 to-orange-500/5'
+                },
               ].map((feature, i) => (
                 <div 
                   key={i}
-                  className="p-5 rounded-2xl glass-card-hover animate-in"
+                  className="group p-6 rounded-2xl bg-gradient-to-br from-secondary/40 to-secondary/20 border border-border/50 hover:border-primary/30 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg animate-in"
                   style={{ animationDelay: `${0.3 + i * 0.1}s` }}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center mb-4">
-                    <feature.icon className="w-5 h-5 text-primary" />
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <feature.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold mb-2">{feature.title}</h3>
+                  <h3 className="font-semibold text-base mb-2">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {feature.desc}
                   </p>
                 </div>
               ))}
+            </div>
+
+            {/* Social Proof / Stats */}
+            <div className="mt-16 pt-12 border-t border-border/30">
+              <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+                {[
+                  { value: '10K+', label: 'Searches' },
+                  { value: '99.9%', label: 'Uptime' },
+                  { value: '<1s', label: 'Response' },
+                ].map((stat, i) => (
+                  <div key={i} className="text-center animate-in" style={{ animationDelay: `${0.6 + i * 0.1}s` }}>
+                    <div className="text-2xl sm:text-3xl font-bold text-primary mb-1">{stat.value}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
