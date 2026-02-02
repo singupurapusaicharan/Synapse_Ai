@@ -14,6 +14,8 @@ router.get('/', authenticateToken, async (req, res) => {
   console.log(`[API] GET /api/history - user_id: ${userId}`);
   
   try {
+    // Convert userId to string (query_history.user_id is TEXT, not UUID)
+    const userIdStr = String(userId);
 
     const result = await pool.query(
       `SELECT 
@@ -26,7 +28,7 @@ router.get('/', authenticateToken, async (req, res) => {
        WHERE user_id = $1
        ORDER BY created_at DESC
        LIMIT 50`,
-      [userId]
+      [userIdStr]
     );
 
     // Parse citations JSON
@@ -80,9 +82,12 @@ router.delete('/clear-all', authenticateToken, async (req, res) => {
       });
     }
 
+    // Convert userId to string (query_history.user_id is TEXT, not UUID)
+    const userIdStr = String(userId);
+
     const result = await pool.query(
       'DELETE FROM query_history WHERE user_id = $1 RETURNING id',
-      [userId]
+      [userIdStr]
     );
 
     res.json({
