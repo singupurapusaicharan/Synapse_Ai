@@ -750,17 +750,6 @@ IMPORTANT:
 - Every fact needs a citation [1], [2]
 - If asking about "emails from X", only show emails from that person
 - Be accurate - don't make up information`;
-For each relevant email/document, list:
-- **Title/Subject**: ...
-  - **From**: ...
-  - **Date**: ...
-  - **Why it’s relevant**: ...
-  - **Citation**: [n]
-
-### Next steps (optional)
-<Only if helpful: what to search/ask next, or what is missing.>
-
-If nothing relevant exists in CONTEXT, say so clearly and suggest a better query.`;
 
           const userPrompt = `QUESTION: ${question}
 
