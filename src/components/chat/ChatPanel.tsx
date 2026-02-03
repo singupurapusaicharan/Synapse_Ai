@@ -198,23 +198,23 @@ function EmptyStateWithSources() {
         Ask questions in natural language. I'll search across all your connected sources instantly.
       </p>
       
-      {/* Example Queries */}
+      {/* Example Queries - Professional FAANG Style */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl w-full px-4">
         {[
-          { icon: MessageCircle, text: 'Emails from my manager this week', color: 'from-blue-500/10 to-blue-500/5' },
-          { icon: MessageCircle, text: 'Find the Q4 budget document', color: 'from-purple-500/10 to-purple-500/5' },
-          { icon: MessageCircle, text: 'Meeting notes about the project', color: 'from-green-500/10 to-green-500/5' },
-          { icon: MessageCircle, text: 'Latest updates from the team', color: 'from-orange-500/10 to-orange-500/5' },
+          { icon: MessageCircle, text: 'Emails from my manager this week' },
+          { icon: MessageCircle, text: 'Find the Q4 budget document' },
+          { icon: MessageCircle, text: 'Meeting notes about the project' },
+          { icon: MessageCircle, text: 'Latest updates from the team' },
         ].map((suggestion, i) => (
           <button
             key={i}
-            className={`group flex items-start gap-3 p-4 text-left rounded-2xl bg-gradient-to-br ${suggestion.color} border border-border/50 hover:border-primary/30 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg animate-in`}
+            className="group flex items-start gap-3 p-4 text-left rounded-2xl bg-card/40 border border-border/40 hover:border-primary/50 hover:bg-card/60 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/5 animate-in"
             style={{ animationDelay: `${i * 100}ms` }}
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-              <suggestion.icon className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15 group-hover:border-primary/30 transition-all">
+              <suggestion.icon className="w-5 h-5 text-primary/80 group-hover:text-primary transition-colors" />
             </div>
-            <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors pt-2">
+            <span className="text-sm text-muted-foreground/80 group-hover:text-foreground transition-colors pt-2 leading-relaxed">
               {suggestion.text}
             </span>
           </button>
