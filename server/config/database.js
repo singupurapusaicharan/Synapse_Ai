@@ -25,17 +25,23 @@ let pool;
 
 if (SUPABASE_DB_URL) {
   // Use Supabase Postgres connection string
+  // Optimized for high concurrency (1000+ users)
   pool = new Pool({
     connectionString: SUPABASE_DB_URL,
     ssl: {
       rejectUnauthorized: false // Supabase requires SSL
     },
-    max: 10, // Reduced from 20 for free tier
+    max: 100, // Increased for high concurrency (1000+ users)
+    min: 10, // Keep minimum connections ready
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 20000, // Increased from 5000 to 20000 (20 seconds)
+    connectionTimeoutMillis: 20000,
     allowExitOnIdle: false,
+    // Queue requests when pool is full (graceful degradation)
+    maxUses: 7500, // Recycle connections after 7500 uses
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10000,
   });
-  console.log('✅ Using Supabase database connection');
+  console.log('✅ Using Supabase database connection (optimized for high concurrency)');
 } else if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
   // Construct connection string from Supabase credentials
   // Extract project ref from URL: https://xxxxx.supabase.co -> xxxxx
@@ -56,12 +62,16 @@ if (SUPABASE_DB_URL) {
       ssl: {
         rejectUnauthorized: false
       },
-      max: 10, // Reduced from 20 for free tier
+      max: 100, // Increased for high concurrency (1000+ users)
+      min: 10, // Keep minimum connections ready
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 20000, // Increased from 5000 to 20000 (20 seconds)
+      connectionTimeoutMillis: 20000,
       allowExitOnIdle: false,
+      maxUses: 7500,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000,
     });
-    console.log('✅ Using Supabase database connection (constructed)');
+    console.log('✅ Using Supabase database connection (constructed, optimized for high concurrency)');
   } else {
     console.warn('⚠️  Could not extract project ref from SUPABASE_URL');
     console.warn('💡 Please set SUPABASE_DB_URL or SUPABASE_DB_PASSWORD in .env');
@@ -87,10 +97,14 @@ if (!pool) {
     database: DB_NAME,
     user: DB_USER,
     password: DB_PASSWORD,
-    max: 10, // Reduced from 20 for free tier
+    max: 100, // Increased for high concurrency (1000+ users)
+    min: 10, // Keep minimum connections ready
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 20000, // Increased from 5000 to 20000 (20 seconds)
+    connectionTimeoutMillis: 20000,
     allowExitOnIdle: false,
+    maxUses: 7500,
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10000,
   });
 }
 
@@ -123,19 +137,87 @@ testConnection();
 // Connection event handlers
 pool.on('connect', () => {
   // Silently handle new connections (reduce log noise)
-  // Uncomment below if you want to see connection logs:
-  // console.log('✅ New database client connected');
 });
 
 pool.on('error', (err) => {
   console.error('❌ Unexpected error on idle client', err);
 });
 
-// Suppress "client removed from pool" warnings (normal behavior for idle timeout)
 pool.on('remove', () => {
-  // This is normal - clients are removed after idleTimeoutMillis
-  // No need to log this as it happens frequently
+  // Normal behavior - clients removed after idle timeout
 });
+
+// ============================================================================
+// CONNECTION POOL MONITORING (for high concurrency)
+// ============================================================================
+
+let poolStats = {
+  totalConnections: 0,
+  idleConnections: 0,
+  waitingClients: 0,
+  lastCheck: Date.now(),
+};
+
+// Monitor pool health every 30 seconds
+setInterval(() => {
+  poolStats = {
+    totalConnections: pool.totalCount,
+    idleConnections: pool.idleCount,
+    waitingClients: pool.waitingCount,
+    lastCheck: Date.now(),
+  };
+  
+  // Log warning if pool is under heavy load
+  if (pool.waitingCount > 10) {
+    console.warn(`⚠️  Database pool under heavy load: ${pool.waitingCount} clients waiting`);
+  }
+  
+  // Log warning if pool is near capacity
+  if (pool.totalCount >= pool.options.max * 0.9) {
+    console.warn(`⚠️  Database pool near capacity: ${pool.totalCount}/${pool.options.max} connections`);
+  }
+}, 30000);
+
+/**
+ * Get current pool statistics
+ * @returns {Object} Pool statistics
+ */
+export function getPoolStats() {
+  return {
+    ...poolStats,
+    maxConnections: pool.options.max,
+    minConnections: pool.options.min || 0,
+    currentTotal: pool.totalCount,
+    currentIdle: pool.idleCount,
+    currentWaiting: pool.waitingCount,
+  };
+}
+
+/**
+ * Health check for connection pool
+ * @returns {Object} Health status
+ */
+export async function checkPoolHealth() {
+  try {
+    const stats = getPoolStats();
+    const utilizationPercent = (stats.currentTotal / stats.maxConnections) * 100;
+    
+    return {
+      healthy: stats.currentWaiting < 20 && utilizationPercent < 95,
+      stats,
+      utilizationPercent: utilizationPercent.toFixed(1),
+      status: stats.currentWaiting > 20 ? 'overloaded' : 
+              utilizationPercent > 90 ? 'high-load' :
+              utilizationPercent > 70 ? 'moderate-load' : 'healthy',
+    };
+  } catch (error) {
+    return {
+      healthy: false,
+      error: error.message,
+      status: 'error',
+    };
+  }
+}
 
 export default pool;
 // supabase is already exported above on line 16

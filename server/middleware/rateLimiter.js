@@ -9,6 +9,7 @@ import { LRUCache } from 'lru-cache';
 // ============================================================================
 
 // Default rate limits (requests per window)
+// Optimized for high concurrency (1000+ concurrent users)
 const RATE_LIMITS = {
   // Authentication endpoints - strict limits to prevent brute force
   auth: {
@@ -31,31 +32,31 @@ const RATE_LIMITS = {
     message: 'Too many OAuth requests. Please try again later.',
   },
   
-  // API endpoints (authenticated) - generous limits for normal use
+  // API endpoints (authenticated) - increased for high concurrency
   api: {
     windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 60, // 60 requests per minute
+    maxRequests: 120, // Increased from 60 to 120 for 1000+ users
     message: 'Too many requests. Please slow down.',
   },
   
-  // Chat/AI endpoints - moderate limits (AI operations are expensive)
+  // Chat/AI endpoints - increased for better UX with many users
   chat: {
     windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 10, // 10 messages per minute
+    maxRequests: 20, // Increased from 10 to 20 for better UX
     message: 'Too many chat requests. Please wait a moment.',
   },
   
-  // Sync operations - strict limits (resource intensive)
+  // Sync operations - slightly relaxed for concurrent users
   sync: {
     windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 3, // 3 syncs per 5 minutes
+    maxRequests: 5, // Increased from 3 to 5
     message: 'Too many sync requests. Please wait before syncing again.',
   },
   
-  // Public endpoints - moderate limits
+  // Public endpoints - increased for high traffic
   public: {
     windowMs: 1 * 60 * 1000, // 1 minute
-    maxRequests: 30, // 30 requests per minute
+    maxRequests: 60, // Increased from 30 to 60
     message: 'Too many requests. Please try again later.',
   },
 };
@@ -65,10 +66,12 @@ const RATE_LIMITS = {
 // ============================================================================
 
 // Using LRU cache to automatically evict old entries
-// Max 10,000 entries to prevent memory exhaustion
+// Increased capacity for high concurrency (1000+ users)
 const rateLimitCache = new LRUCache({
-  max: 10000,
+  max: 50000, // Increased from 10,000 to 50,000 for 1000+ concurrent users
   ttl: 60 * 60 * 1000, // 1 hour TTL
+  updateAgeOnGet: false, // Don't update age on get (better performance)
+  updateAgeOnHas: false,
 });
 
 // ============================================================================

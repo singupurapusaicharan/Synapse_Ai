@@ -15,6 +15,7 @@ import settingsRoutes from './routes/settings.js';
 import pool from './config/database.js'; // Uses Supabase Postgres connection
 import { validateEnvironmentOrExit } from './utils/envValidator.js';
 import { publicRateLimiter } from './middleware/rateLimiter.js';
+import { requestQueueMiddleware } from './middleware/requestQueue.js';
 import { startPeriodicCleanup } from './utils/cleanup.js';
 
 dotenv.config();
@@ -69,6 +70,13 @@ if (process.env.NODE_ENV === 'production') {
 if (process.env.NODE_ENV === 'production') {
   app.use(compression());
 }
+
+// ============================================================================
+// REQUEST QUEUE MIDDLEWARE (for high concurrency)
+// ============================================================================
+
+// Queue requests when system is under high load (1000+ concurrent users)
+app.use(requestQueueMiddleware);
 
 // ============================================================================
 // CORS CONFIGURATION
@@ -142,8 +150,85 @@ app.get('/', publicRateLimiter, (req, res) => {
 });
 
 // Health check (no rate limit for monitoring)
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+  try {
+    // Check database connection
+    const dbCheck = await pool.query('SELECT 1');
+    
+    // Get pool statistics
+    const { checkPoolHealth } = await import('./config/database.js');
+    const poolHealth = await checkPoolHealth();
+    
+    // Get queue statistics
+    const { getQueueStats } = await import('./middleware/requestQueue.js');
+    const queueStats = getQueueStats();
+    
+    res.json({ 
+      status: 'ok', 
+      message: 'Server is running', 
+      timestamp: new Date().toISOString(),
+      database: {
+        connected: !!dbCheck,
+        pool: poolHealth,
+      },
+      queue: queueStats,
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'error',
+      message: 'Service unavailable',
+      timestamp: new Date().toISOString(),
+      error: error.message,
+    });
+  }
+});
+
+// System monitoring endpoint (detailed stats)
+app.get('/api/system/status', publicRateLimiter, async (req, res) => {
+  try {
+    // Get pool statistics
+    const { getPoolStats, checkPoolHealth } = await import('./config/database.js');
+    const poolStats = getPoolStats();
+    const poolHealth = await checkPoolHealth();
+    
+    // Get queue statistics
+    const { getQueueStats } = await import('./middleware/requestQueue.js');
+    const queueStats = getQueueStats();
+    
+    // Get rate limit statistics
+    const { getRateLimitStats } = await import('./middleware/rateLimiter.js');
+    const rateLimitStats = getRateLimitStats();
+    
+    // Memory usage
+    const memoryUsage = process.memoryUsage();
+    
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      system: {
+        nodeVersion: process.version,
+        platform: process.platform,
+        memory: {
+          heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)} MB`,
+          heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)} MB`,
+          rss: `${(memoryUsage.rss / 1024 / 1024).toFixed(2)} MB`,
+        },
+      },
+      database: {
+        pool: poolStats,
+        health: poolHealth,
+      },
+      queue: queueStats,
+      rateLimit: rateLimitStats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to get system status',
+      error: error.message,
+    });
+  }
 });
 
 // API info endpoint
