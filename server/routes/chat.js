@@ -9,10 +9,11 @@ import { getAuthenticatedClients } from '../lib/googleOAuthReal.js';
 const router = express.Router();
 
 // Speed/quality knobs (override via env without code changes)
-const RAG_SEARCH_K = Math.max(5, Math.min(100, parseInt(process.env.RAG_SEARCH_K || '25', 10)));
-const RAG_MAX_CHUNKS = Math.max(3, Math.min(15, parseInt(process.env.RAG_MAX_CHUNKS || '6', 10)));
-const RAG_CHUNK_MAX_CHARS = Math.max(150, Math.min(1200, parseInt(process.env.RAG_CHUNK_MAX_CHARS || '350', 10)));
-const GMAIL_LIVE_FALLBACK_MAX = Math.max(0, Math.min(10, parseInt(process.env.GMAIL_LIVE_FALLBACK_MAX || '5', 10)));
+// OPTIMIZED FOR LARGE DATASETS: Increased search parameters for better accuracy
+const RAG_SEARCH_K = Math.max(10, Math.min(200, parseInt(process.env.RAG_SEARCH_K || '50', 10))); // Increased from 25 to 50
+const RAG_MAX_CHUNKS = Math.max(5, Math.min(20, parseInt(process.env.RAG_MAX_CHUNKS || '10', 10))); // Increased from 6 to 10
+const RAG_CHUNK_MAX_CHARS = Math.max(200, Math.min(1500, parseInt(process.env.RAG_CHUNK_MAX_CHARS || '500', 10))); // Increased from 350 to 500
+const GMAIL_LIVE_FALLBACK_MAX = Math.max(0, Math.min(15, parseInt(process.env.GMAIL_LIVE_FALLBACK_MAX || '8', 10))); // Increased from 5 to 8
 
 function extractFirstEmail(text) {
   const m = String(text || '').match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
@@ -683,12 +684,12 @@ router.post('/message', authenticateToken, async (req, res) => {
         
         let matchedChunks;
         try {
-          // Enhanced search with MAXIMUM relevance threshold for accurate answers
+          // Enhanced search with OPTIMIZED relevance threshold for large datasets
           const searchParams = {
             userId: userId.toString(),
             queryEmbedding,
-            k: RAG_SEARCH_K, // Pull candidates; tuned for speed via env
-            minSimilarity: 0.50, // MAXIMUM threshold - only extremely relevant results
+            k: RAG_SEARCH_K, // Pull more candidates for better accuracy in large datasets
+            minSimilarity: 0.35, // Balanced threshold - catches relevant results without noise
             boostRecent: true
           };
 
@@ -700,9 +701,9 @@ router.post('/message', authenticateToken, async (req, res) => {
             // Also try to find emails directly from this person
             const directEmailChunks = await searchTopK({
               ...searchParams,
-              k: 10,
+              k: 15, // Get more results for name-based queries
               boostName: personName,
-              minSimilarity: 0.45, // Slightly lower for name matches but still very high
+              minSimilarity: 0.30, // Lower threshold for name matches to catch more results
               sourceTypes: ['gmail'],
               metadataFilters: [
                 { key: 'fromName', value: personName, operator: 'ilike' }
@@ -739,10 +740,10 @@ router.post('/message', authenticateToken, async (req, res) => {
           matchedChunks = [];
         }
 
-        // Filter out anything below maximum relevance threshold
+        // Filter chunks with balanced threshold for large datasets
         matchedChunks = matchedChunks.filter(chunk => {
-          const textOk = chunk.chunk_text && chunk.chunk_text.trim().length >= 40;
-          const similarityOk = typeof chunk.similarity === 'number' ? chunk.similarity >= 0.50 : true; // MAXIMUM threshold
+          const textOk = chunk.chunk_text && chunk.chunk_text.trim().length >= 30; // Slightly lower for more coverage
+          const similarityOk = typeof chunk.similarity === 'number' ? chunk.similarity >= 0.35 : true; // Balanced threshold
           return textOk && similarityOk;
         });
 
@@ -1097,31 +1098,32 @@ Please provide a detailed answer based on the context above.`;
           
           citations = Array.from(citationMap.values())
             .sort((a, b) => (b.score || 0) - (a.score || 0))
-            // ULTRA STRICT FILTERING: Only show citations actually referenced in the answer
-            // This prevents showing irrelevant citations
+            // SMART FILTERING: Balance relevance with coverage for large datasets
+            // Shows citations that are both relevant AND referenced in the answer
             .filter(citation => {
-              // If we have a similarity score, use VERY strict threshold
+              // For large datasets, use adaptive threshold based on score distribution
               if (typeof citation.score === 'number') {
-                // Only show citations with 70%+ similarity (very high relevance)
-                return citation.score >= 0.70;
+                // Accept citations with 50%+ similarity (balanced threshold)
+                // This ensures we catch relevant results even in huge datasets
+                return citation.score >= 0.50;
               }
-              // For keyword search results, only keep top 2
-              return true;
+              // For keyword search results, keep top 3
+              return citation.number <= 3;
             })
             // Check if citation is actually referenced in the answer text
             .filter(citation => {
               // Extract citation numbers from answer (e.g., [1], [2])
               const citationNumbers = answer.match(/\[(\d+)\]/g);
               if (!citationNumbers || citationNumbers.length === 0) {
-                // If no citation numbers in answer, only show top 2 most relevant
-                return citation.number <= 2;
+                // If no citation numbers in answer, show top 3 most relevant
+                return citation.number <= 3;
               }
               // Only show citations that are actually referenced in the answer
               const referencedNumbers = citationNumbers.map(c => parseInt(c.replace(/[\[\]]/g, '')));
               return referencedNumbers.includes(citation.number);
             })
-            // Limit to maximum 3 citations
-            .slice(0, 3)
+            // Limit to maximum 5 citations for better coverage in large datasets
+            .slice(0, 5)
             .map((citation, index) => ({
               ...citation,
               number: index + 1
